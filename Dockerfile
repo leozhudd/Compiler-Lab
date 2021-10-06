@@ -9,4 +9,4 @@ COPY ./src/* /app/
 WORKDIR /app/
 RUN javac src/Lexer.java
 # 将当前目录设为 /app/output
-WORKDIR /app/output
+# WORKDIR /app/output

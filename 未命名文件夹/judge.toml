@@ -1,7 +1,0 @@
-[jobs.lexer]
-
-image = { source = "dockerfile", path = "." }
-
-run = [
-  "java Test $input",
-]

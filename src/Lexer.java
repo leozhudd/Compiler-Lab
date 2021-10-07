@@ -66,7 +66,7 @@ public class Lexer {
                 System.out.printf("Number(%s)\n",buildStr);
             }
             else if(delimiter.containsKey(c)) { // 判断分界符
-                if(c=='=' && s.length>1 && s[i+1]=='=') { // 特判双等号
+                if(c=='=' && i+1<s.length && s[i+1]=='=') { // 特判双等号
                     System.out.println("Eq");
                     i++;
                 }

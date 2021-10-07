@@ -7,6 +7,6 @@ FROM openjdk:8
 COPY ./* /app/
 # 编译程序
 WORKDIR /app/
-RUN javac -cp src/ src/Lexer.java -d dst/
+RUN javac ./src/Lexer.java
 # 将当前目录设为 /app/output
-# WORKDIR /app/output
+WORKDIR /app/src

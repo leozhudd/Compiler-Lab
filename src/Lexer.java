@@ -73,6 +73,7 @@ public class Lexer {
                 else System.out.println(delimiter.get(c));
             }
             else if(isSpace(c)){
+                // 空格和制表符，跳过，什么都不做
             }
             else {
                 System.out.println("Err");

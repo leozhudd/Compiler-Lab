@@ -1,0 +1,15 @@
+LPAREN=1
+RPAREN=2
+ADD=3
+SUB=4
+MUL=5
+DIV=6
+NUMBER=7
+RET=8
+WHITE_SPACE=9
+'('=1
+')'=2
+'+'=3
+'-'=4
+'*'=5
+'/'=6

@@ -13,7 +13,7 @@ public class Visitor extends SysYBaseVisitor<String> {
     // funcDef: funcType ident L_PAREN R_PAREN block;
     @Override
     public String visitFuncDef(SysYParser.FuncDefContext ctx) {
-        return "define dso_local " + visit(ctx.funcType()) + visit(ctx.ident()) + "()" + visit(ctx.block());
+        return "define dso_local " + visit(ctx.funcType()) + visit(ctx.ident()) + visit(ctx.block());
     }
 
     // funcType: INT;

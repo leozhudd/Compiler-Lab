@@ -18,6 +18,12 @@ public class Test {
             parser.addParseListener(new Listener());
             parser.compUnit();*/
 
+            // 自定义错误分析器
+            lexer.removeErrorListeners();
+            lexer.addErrorListener(new ErrorListener());
+            parser.removeErrorListeners();
+            parser.addErrorListener(new ErrorListener());
+
             // 使用Visitor方法遍历语法树
             ParseTree tree = parser.compUnit();
             Visitor visitor = new Visitor();

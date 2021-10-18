@@ -11,7 +11,7 @@ RETURN: 'return';
 SEMICOLON: ';';
 INT: 'int';
 HEXADECIMAL_CONST: ('0x' | '0X') [0-9a-fA-F]+;
-OCTAL_CONST: '0' [0-7]+;
+OCTAL_CONST: '0' [0-7]*;
 DECIMAL_CONST: [1-9] [0-9]*;
 WHITE_SPACE: [ \t\r\n]+ -> skip; // 解析时忽略空格、Tab、换行、\r
 LINE_COMMENT : '//' .*? '\n' -> skip ; // 解析时忽略行注释

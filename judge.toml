@@ -9,5 +9,5 @@ image = { source = "dockerfile", path = "." }
 # 假如你用的是 Java
 run = [
   # 运行程序
-  "java -cp .:antlr-4.9.2-complete.jar Test $input",
+  "java -cp .:antlr-4.9.2-complete.jar Test $input $ir",
 ]

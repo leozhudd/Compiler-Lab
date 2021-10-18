@@ -3,7 +3,8 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import java.io.IOException;
+import java.io.*;
+
 
 public class Test {
     public static void main(String[] args) {
@@ -27,8 +28,12 @@ public class Test {
             // 使用Visitor方法遍历语法树
             ParseTree tree = parser.compUnit();
             Visitor visitor = new Visitor();
-            System.out.println(visitor.visit(tree));
 
+            File file = new File(args[1]);
+            BufferedWriter out  = new BufferedWriter(new FileWriter(file));
+            out.write(visitor.visit(tree));
+            out.close();
+            // System.out.println(visitor.visit(tree));
         } catch (IOException e) {
             e.printStackTrace();
         }

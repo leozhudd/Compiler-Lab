@@ -5,6 +5,6 @@
 FROM openjdk:15
 # 向容器内复制文件
 WORKDIR /app/
-COPY ./* /app/
+COPY ./ /app/
 # 编译程序
 RUN javac -cp antlr-4.9.2-complete.jar *.java

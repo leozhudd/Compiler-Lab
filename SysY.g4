@@ -2,6 +2,12 @@
 grammar SysY;
 
 // 词法分析
+// 添加些常量（遍历时通过SysYParser.MUL获取），方便对比
+ADD: '+';
+SUB: '-';
+MUL: '*';
+DIV: '/';
+MOD: '%';
 L_PAREN: '(';
 R_PAREN: ')';
 L_BRACE: '{';
@@ -23,6 +29,16 @@ funcDef: funcType ident L_PAREN R_PAREN block;
 funcType: INT;
 ident: MAIN;
 block: L_BRACE stmt R_BRACE;
-stmt: RETURN number SEMICOLON;
+stmt: RETURN exp SEMICOLON;
+exp: addExp;
+// 引入op变量更友好地标记运算符。在Visitor的上下文（ctx）中可以，ctx.op 这样直接获取到运算符。
+addExp: mulExp
+    | addExp op=(ADD|SUB) mulExp;
+mulExp: unaryExp
+    | mulExp op=(MUL|DIV|MOD) unaryExp;
+unaryExp: primaryExp
+    | unaryOp unaryExp;
+primaryExp: L_PAREN exp R_PAREN | number;
+unaryOp: ADD | SUB;
 number: DECIMAL_CONST | OCTAL_CONST | HEXADECIMAL_CONST;
 

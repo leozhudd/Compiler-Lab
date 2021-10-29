@@ -67,6 +67,66 @@ public interface SysYListener extends ParseTreeListener {
 	 */
 	void exitStmt(SysYParser.StmtContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SysYParser#exp}.
+	 * @param ctx the parse tree
+	 */
+	void enterExp(SysYParser.ExpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SysYParser#exp}.
+	 * @param ctx the parse tree
+	 */
+	void exitExp(SysYParser.ExpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SysYParser#addExp}.
+	 * @param ctx the parse tree
+	 */
+	void enterAddExp(SysYParser.AddExpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SysYParser#addExp}.
+	 * @param ctx the parse tree
+	 */
+	void exitAddExp(SysYParser.AddExpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SysYParser#mulExp}.
+	 * @param ctx the parse tree
+	 */
+	void enterMulExp(SysYParser.MulExpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SysYParser#mulExp}.
+	 * @param ctx the parse tree
+	 */
+	void exitMulExp(SysYParser.MulExpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SysYParser#unaryExp}.
+	 * @param ctx the parse tree
+	 */
+	void enterUnaryExp(SysYParser.UnaryExpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SysYParser#unaryExp}.
+	 * @param ctx the parse tree
+	 */
+	void exitUnaryExp(SysYParser.UnaryExpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SysYParser#primaryExp}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryExp(SysYParser.PrimaryExpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SysYParser#primaryExp}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryExp(SysYParser.PrimaryExpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SysYParser#unaryOp}.
+	 * @param ctx the parse tree
+	 */
+	void enterUnaryOp(SysYParser.UnaryOpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SysYParser#unaryOp}.
+	 * @param ctx the parse tree
+	 */
+	void exitUnaryOp(SysYParser.UnaryOpContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SysYParser#number}.
 	 * @param ctx the parse tree
 	 */

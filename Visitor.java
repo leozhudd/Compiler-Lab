@@ -1,9 +1,8 @@
-import org.antlr.v4.runtime.tree.ParseTree;
-
 import java.math.BigInteger;
 
 public class Visitor extends SysYBaseVisitor<String> {
     // private static Map<String,Integer> assignMap = new HashMap<>();
+    private int regId = 1; // 从1开始
 
     // compUnit: funcDef;
     @Override
@@ -14,31 +13,39 @@ public class Visitor extends SysYBaseVisitor<String> {
     // funcDef: funcType ident L_PAREN R_PAREN block;
     @Override
     public String visitFuncDef(SysYParser.FuncDefContext ctx) {
-        return "define dso_local " + visit(ctx.funcType()) + visit(ctx.ident()) + visit(ctx.block());
+        System.out.print("define dso_local ");
+        return visitChildren(ctx);
     }
 
     // funcType: INT;
     @Override
     public String visitFuncType(SysYParser.FuncTypeContext ctx) {
-        return "i32 ";
+        System.out.print("i32 ");
+        return null;
     }
 
     // ident: MAIN;
     @Override
     public String visitIdent(SysYParser.IdentContext ctx) {
-        return "@main()";
+        System.out.print("@main() ");
+        return null;
     }
 
     // block: L_BRACE stmt R_BRACE;
     @Override
     public String visitBlock(SysYParser.BlockContext ctx) {
-        return "{\n" + visit(ctx.stmt()) + "\n}";
+        System.out.println("{");
+        visit(ctx.stmt());
+        System.out.println("}");
+        return null;
     }
 
     // stmt: RETURN exp SEMICOLON;
     @Override
     public String visitStmt(SysYParser.StmtContext ctx) {
-        return "    ret i32 "+ visit(ctx.exp());
+        String reg = visit(ctx.exp());
+        System.out.println("    ret i32 " + reg);
+        return null;
     }
 
     // exp: addExp;
@@ -51,12 +58,16 @@ public class Visitor extends SysYBaseVisitor<String> {
     @Override
     public String visitAddExp(SysYParser.AddExpContext ctx) {
         if(ctx.addExp() != null) {
-            int p1 = str2int(visit(ctx.addExp()));
-            int p2 = str2int(visit(ctx.mulExp()));
+            String a = visit(ctx.addExp());
+            String b = visit(ctx.mulExp());
+            String reg = "%" + regId++;
             if(ctx.op.getType() == SysYParser.ADD) {
-                return String.valueOf(p1+p2);
+                System.out.println("    " + reg + " = add i32 " + a + ", " + b);
             }
-            else return String.valueOf(p1-p2);
+            else {
+                System.out.println("    " + reg + " = sub i32 " + a + ", " + b);
+            }
+            return reg;
         }
         else return visit(ctx.mulExp());
     }
@@ -65,27 +76,38 @@ public class Visitor extends SysYBaseVisitor<String> {
     @Override
     public String visitMulExp(SysYParser.MulExpContext ctx) {
         if(ctx.mulExp() != null) {
-            int p1 = str2int(visit(ctx.mulExp()));
-            int p2 = str2int(visit(ctx.unaryExp()));
+            String a = visit(ctx.mulExp());
+            String b = visit(ctx.unaryExp());
+            String reg = "%" + regId++;
             if(ctx.op.getType() == SysYParser.MUL) {
-                return String.valueOf(p1*p2);
+                System.out.println("    " + reg + " = mul i32 " + a + ", " + b);
             }
             else if(ctx.op.getType() == SysYParser.DIV) {
-                return String.valueOf(p1/p2);
+                System.out.println("    " + reg + " = div i32 " + a + ", " + b);
             }
-            else return String.valueOf(p1%p2);
+            else {
+                System.out.println("    " + reg + " = mod i32 " + a + ", " + b);
+            }
+            return reg;
         }
-        return visit(ctx.unaryExp());
+        else return visit(ctx.unaryExp());
+
     }
 
     // unaryExp: primaryExp | unaryOp unaryExp;
     @Override
     public String visitUnaryExp(SysYParser.UnaryExpContext ctx) {
-        if(ctx.primaryExp() != null) {
+        if(ctx.primaryExp() != null) { // 是[primaryExp]
             return visit(ctx.primaryExp());
         }
-        else {
-            return String.valueOf(str2int(visit(ctx.unaryOp())) * str2int(visit(ctx.unaryExp())));
+        else { // 是[unaryExp]
+            String unaryExp = visit(ctx.unaryExp());
+            if(ctx.op.getType() == SysYParser.SUB) { // Op=[-]，计算0-unaryExp
+                String reg = "%" + regId++;
+                System.out.println("    " + reg + " = sub i32 0, " + unaryExp);
+                return reg;
+            }
+            else return unaryExp; // Op=[+]，无需计算直接向上返回
         }
     }
 
@@ -101,13 +123,13 @@ public class Visitor extends SysYBaseVisitor<String> {
     }
 
     // unaryOp: ADD | SUB;
-    @Override
-    public String visitUnaryOp(SysYParser.UnaryOpContext ctx) {
-        if(ctx.ADD() != null) {
-            return "1";
-        }
-        else return "-1";
-    }
+//    @Override
+//    public String visitUnaryOp(SysYParser.UnaryOpContext ctx) {
+//        if(ctx.ADD() != null) {
+//            return "1";
+//        }
+//        else return "-1";
+//    }
 
     // number: DECIMAL_CONST | OCTAL_CONST | HEXADECIMAL_CONST;
     @Override

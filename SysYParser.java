@@ -22,11 +22,11 @@ public class SysYParser extends Parser {
 	public static final int
 		RULE_compUnit = 0, RULE_funcDef = 1, RULE_funcType = 2, RULE_ident = 3, 
 		RULE_block = 4, RULE_stmt = 5, RULE_exp = 6, RULE_addExp = 7, RULE_mulExp = 8, 
-		RULE_unaryExp = 9, RULE_primaryExp = 10, RULE_unaryOp = 11, RULE_number = 12;
+		RULE_unaryExp = 9, RULE_primaryExp = 10, RULE_number = 11;
 	private static String[] makeRuleNames() {
 		return new String[] {
 			"compUnit", "funcDef", "funcType", "ident", "block", "stmt", "exp", "addExp", 
-			"mulExp", "unaryExp", "primaryExp", "unaryOp", "number"
+			"mulExp", "unaryExp", "primaryExp", "number"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();
@@ -125,7 +125,7 @@ public class SysYParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(26);
+			setState(24);
 			funcDef();
 			}
 		}
@@ -177,15 +177,15 @@ public class SysYParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(28);
+			setState(26);
 			funcType();
-			setState(29);
+			setState(27);
 			ident();
-			setState(30);
+			setState(28);
 			match(L_PAREN);
-			setState(31);
+			setState(29);
 			match(R_PAREN);
-			setState(32);
+			setState(30);
 			block();
 			}
 		}
@@ -227,7 +227,7 @@ public class SysYParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(34);
+			setState(32);
 			match(INT);
 			}
 		}
@@ -269,7 +269,7 @@ public class SysYParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(36);
+			setState(34);
 			match(MAIN);
 			}
 		}
@@ -315,11 +315,11 @@ public class SysYParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(38);
+			setState(36);
 			match(L_BRACE);
-			setState(39);
+			setState(37);
 			stmt();
-			setState(40);
+			setState(38);
 			match(R_BRACE);
 			}
 		}
@@ -365,11 +365,11 @@ public class SysYParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(42);
+			setState(40);
 			match(RETURN);
-			setState(43);
+			setState(41);
 			exp();
-			setState(44);
+			setState(42);
 			match(SEMICOLON);
 			}
 		}
@@ -413,7 +413,7 @@ public class SysYParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(46);
+			setState(44);
 			addExp(0);
 			}
 		}
@@ -474,11 +474,11 @@ public class SysYParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			{
-			setState(49);
+			setState(47);
 			mulExp(0);
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(56);
+			setState(54);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,0,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
@@ -489,9 +489,9 @@ public class SysYParser extends Parser {
 					{
 					_localctx = new AddExpContext(_parentctx, _parentState);
 					pushNewRecursionContext(_localctx, _startState, RULE_addExp);
-					setState(51);
+					setState(49);
 					if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
-					setState(52);
+					setState(50);
 					((AddExpContext)_localctx).op = _input.LT(1);
 					_la = _input.LA(1);
 					if ( !(_la==ADD || _la==SUB) ) {
@@ -502,12 +502,12 @@ public class SysYParser extends Parser {
 						_errHandler.reportMatch(this);
 						consume();
 					}
-					setState(53);
+					setState(51);
 					mulExp(0);
 					}
 					} 
 				}
-				setState(58);
+				setState(56);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,0,_ctx);
 			}
@@ -571,11 +571,11 @@ public class SysYParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			{
-			setState(60);
+			setState(58);
 			unaryExp();
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(67);
+			setState(65);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,1,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
@@ -586,9 +586,9 @@ public class SysYParser extends Parser {
 					{
 					_localctx = new MulExpContext(_parentctx, _parentState);
 					pushNewRecursionContext(_localctx, _startState, RULE_mulExp);
-					setState(62);
+					setState(60);
 					if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
-					setState(63);
+					setState(61);
 					((MulExpContext)_localctx).op = _input.LT(1);
 					_la = _input.LA(1);
 					if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << MUL) | (1L << DIV) | (1L << MOD))) != 0)) ) {
@@ -599,12 +599,12 @@ public class SysYParser extends Parser {
 						_errHandler.reportMatch(this);
 						consume();
 					}
-					setState(64);
+					setState(62);
 					unaryExp();
 					}
 					} 
 				}
-				setState(69);
+				setState(67);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,1,_ctx);
 			}
@@ -622,15 +622,15 @@ public class SysYParser extends Parser {
 	}
 
 	public static class UnaryExpContext extends ParserRuleContext {
+		public Token op;
 		public PrimaryExpContext primaryExp() {
 			return getRuleContext(PrimaryExpContext.class,0);
-		}
-		public UnaryOpContext unaryOp() {
-			return getRuleContext(UnaryOpContext.class,0);
 		}
 		public UnaryExpContext unaryExp() {
 			return getRuleContext(UnaryExpContext.class,0);
 		}
+		public TerminalNode ADD() { return getToken(SysYParser.ADD, 0); }
+		public TerminalNode SUB() { return getToken(SysYParser.SUB, 0); }
 		public UnaryExpContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -653,8 +653,9 @@ public class SysYParser extends Parser {
 	public final UnaryExpContext unaryExp() throws RecognitionException {
 		UnaryExpContext _localctx = new UnaryExpContext(_ctx, getState());
 		enterRule(_localctx, 18, RULE_unaryExp);
+		int _la;
 		try {
-			setState(74);
+			setState(71);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case L_PAREN:
@@ -663,7 +664,7 @@ public class SysYParser extends Parser {
 			case DECIMAL_CONST:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(70);
+				setState(68);
 				primaryExp();
 				}
 				break;
@@ -671,9 +672,18 @@ public class SysYParser extends Parser {
 			case SUB:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(71);
-				unaryOp();
-				setState(72);
+				setState(69);
+				((UnaryExpContext)_localctx).op = _input.LT(1);
+				_la = _input.LA(1);
+				if ( !(_la==ADD || _la==SUB) ) {
+					((UnaryExpContext)_localctx).op = (Token)_errHandler.recoverInline(this);
+				}
+				else {
+					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+					_errHandler.reportMatch(this);
+					consume();
+				}
+				setState(70);
 				unaryExp();
 				}
 				break;
@@ -724,17 +734,17 @@ public class SysYParser extends Parser {
 		PrimaryExpContext _localctx = new PrimaryExpContext(_ctx, getState());
 		enterRule(_localctx, 20, RULE_primaryExp);
 		try {
-			setState(81);
+			setState(78);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case L_PAREN:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(76);
+				setState(73);
 				match(L_PAREN);
-				setState(77);
+				setState(74);
 				exp();
-				setState(78);
+				setState(75);
 				match(R_PAREN);
 				}
 				break;
@@ -743,64 +753,12 @@ public class SysYParser extends Parser {
 			case DECIMAL_CONST:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(80);
+				setState(77);
 				number();
 				}
 				break;
 			default:
 				throw new NoViableAltException(this);
-			}
-		}
-		catch (RecognitionException re) {
-			_localctx.exception = re;
-			_errHandler.reportError(this, re);
-			_errHandler.recover(this, re);
-		}
-		finally {
-			exitRule();
-		}
-		return _localctx;
-	}
-
-	public static class UnaryOpContext extends ParserRuleContext {
-		public TerminalNode ADD() { return getToken(SysYParser.ADD, 0); }
-		public TerminalNode SUB() { return getToken(SysYParser.SUB, 0); }
-		public UnaryOpContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_unaryOp; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SysYListener ) ((SysYListener)listener).enterUnaryOp(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SysYListener ) ((SysYListener)listener).exitUnaryOp(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SysYVisitor ) return ((SysYVisitor<? extends T>)visitor).visitUnaryOp(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-
-	public final UnaryOpContext unaryOp() throws RecognitionException {
-		UnaryOpContext _localctx = new UnaryOpContext(_ctx, getState());
-		enterRule(_localctx, 22, RULE_unaryOp);
-		int _la;
-		try {
-			enterOuterAlt(_localctx, 1);
-			{
-			setState(83);
-			_la = _input.LA(1);
-			if ( !(_la==ADD || _la==SUB) ) {
-			_errHandler.recoverInline(this);
-			}
-			else {
-				if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
-				_errHandler.reportMatch(this);
-				consume();
-			}
 			}
 		}
 		catch (RecognitionException re) {
@@ -839,12 +797,12 @@ public class SysYParser extends Parser {
 
 	public final NumberContext number() throws RecognitionException {
 		NumberContext _localctx = new NumberContext(_ctx, getState());
-		enterRule(_localctx, 24, RULE_number);
+		enterRule(_localctx, 22, RULE_number);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(85);
+			setState(80);
 			_la = _input.LA(1);
 			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << HEXADECIMAL_CONST) | (1L << OCTAL_CONST) | (1L << DECIMAL_CONST))) != 0)) ) {
 			_errHandler.recoverInline(this);
@@ -892,27 +850,26 @@ public class SysYParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\25Z\4\2\t\2\4\3\t"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\25U\4\2\t\2\4\3\t"+
 		"\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t\13\4"+
-		"\f\t\f\4\r\t\r\4\16\t\16\3\2\3\2\3\3\3\3\3\3\3\3\3\3\3\3\3\4\3\4\3\5\3"+
-		"\5\3\6\3\6\3\6\3\6\3\7\3\7\3\7\3\7\3\b\3\b\3\t\3\t\3\t\3\t\3\t\3\t\7\t"+
-		"9\n\t\f\t\16\t<\13\t\3\n\3\n\3\n\3\n\3\n\3\n\7\nD\n\n\f\n\16\nG\13\n\3"+
-		"\13\3\13\3\13\3\13\5\13M\n\13\3\f\3\f\3\f\3\f\3\f\5\fT\n\f\3\r\3\r\3\16"+
-		"\3\16\3\16\2\4\20\22\17\2\4\6\b\n\f\16\20\22\24\26\30\32\2\5\3\2\3\4\3"+
-		"\2\5\7\3\2\20\22\2P\2\34\3\2\2\2\4\36\3\2\2\2\6$\3\2\2\2\b&\3\2\2\2\n"+
-		"(\3\2\2\2\f,\3\2\2\2\16\60\3\2\2\2\20\62\3\2\2\2\22=\3\2\2\2\24L\3\2\2"+
-		"\2\26S\3\2\2\2\30U\3\2\2\2\32W\3\2\2\2\34\35\5\4\3\2\35\3\3\2\2\2\36\37"+
-		"\5\6\4\2\37 \5\b\5\2 !\7\b\2\2!\"\7\t\2\2\"#\5\n\6\2#\5\3\2\2\2$%\7\17"+
-		"\2\2%\7\3\2\2\2&\'\7\f\2\2\'\t\3\2\2\2()\7\n\2\2)*\5\f\7\2*+\7\13\2\2"+
-		"+\13\3\2\2\2,-\7\r\2\2-.\5\16\b\2./\7\16\2\2/\r\3\2\2\2\60\61\5\20\t\2"+
-		"\61\17\3\2\2\2\62\63\b\t\1\2\63\64\5\22\n\2\64:\3\2\2\2\65\66\f\3\2\2"+
-		"\66\67\t\2\2\2\679\5\22\n\28\65\3\2\2\29<\3\2\2\2:8\3\2\2\2:;\3\2\2\2"+
-		";\21\3\2\2\2<:\3\2\2\2=>\b\n\1\2>?\5\24\13\2?E\3\2\2\2@A\f\3\2\2AB\t\3"+
-		"\2\2BD\5\24\13\2C@\3\2\2\2DG\3\2\2\2EC\3\2\2\2EF\3\2\2\2F\23\3\2\2\2G"+
-		"E\3\2\2\2HM\5\26\f\2IJ\5\30\r\2JK\5\24\13\2KM\3\2\2\2LH\3\2\2\2LI\3\2"+
-		"\2\2M\25\3\2\2\2NO\7\b\2\2OP\5\16\b\2PQ\7\t\2\2QT\3\2\2\2RT\5\32\16\2"+
-		"SN\3\2\2\2SR\3\2\2\2T\27\3\2\2\2UV\t\2\2\2V\31\3\2\2\2WX\t\4\2\2X\33\3"+
-		"\2\2\2\6:ELS";
+		"\f\t\f\4\r\t\r\3\2\3\2\3\3\3\3\3\3\3\3\3\3\3\3\3\4\3\4\3\5\3\5\3\6\3\6"+
+		"\3\6\3\6\3\7\3\7\3\7\3\7\3\b\3\b\3\t\3\t\3\t\3\t\3\t\3\t\7\t\67\n\t\f"+
+		"\t\16\t:\13\t\3\n\3\n\3\n\3\n\3\n\3\n\7\nB\n\n\f\n\16\nE\13\n\3\13\3\13"+
+		"\3\13\5\13J\n\13\3\f\3\f\3\f\3\f\3\f\5\fQ\n\f\3\r\3\r\3\r\2\4\20\22\16"+
+		"\2\4\6\b\n\f\16\20\22\24\26\30\2\5\3\2\3\4\3\2\5\7\3\2\20\22\2L\2\32\3"+
+		"\2\2\2\4\34\3\2\2\2\6\"\3\2\2\2\b$\3\2\2\2\n&\3\2\2\2\f*\3\2\2\2\16.\3"+
+		"\2\2\2\20\60\3\2\2\2\22;\3\2\2\2\24I\3\2\2\2\26P\3\2\2\2\30R\3\2\2\2\32"+
+		"\33\5\4\3\2\33\3\3\2\2\2\34\35\5\6\4\2\35\36\5\b\5\2\36\37\7\b\2\2\37"+
+		" \7\t\2\2 !\5\n\6\2!\5\3\2\2\2\"#\7\17\2\2#\7\3\2\2\2$%\7\f\2\2%\t\3\2"+
+		"\2\2&\'\7\n\2\2\'(\5\f\7\2()\7\13\2\2)\13\3\2\2\2*+\7\r\2\2+,\5\16\b\2"+
+		",-\7\16\2\2-\r\3\2\2\2./\5\20\t\2/\17\3\2\2\2\60\61\b\t\1\2\61\62\5\22"+
+		"\n\2\628\3\2\2\2\63\64\f\3\2\2\64\65\t\2\2\2\65\67\5\22\n\2\66\63\3\2"+
+		"\2\2\67:\3\2\2\28\66\3\2\2\289\3\2\2\29\21\3\2\2\2:8\3\2\2\2;<\b\n\1\2"+
+		"<=\5\24\13\2=C\3\2\2\2>?\f\3\2\2?@\t\3\2\2@B\5\24\13\2A>\3\2\2\2BE\3\2"+
+		"\2\2CA\3\2\2\2CD\3\2\2\2D\23\3\2\2\2EC\3\2\2\2FJ\5\26\f\2GH\t\2\2\2HJ"+
+		"\5\24\13\2IF\3\2\2\2IG\3\2\2\2J\25\3\2\2\2KL\7\b\2\2LM\5\16\b\2MN\7\t"+
+		"\2\2NQ\3\2\2\2OQ\5\30\r\2PK\3\2\2\2PO\3\2\2\2Q\27\3\2\2\2RS\t\4\2\2S\31"+
+		"\3\2\2\2\68CIP";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

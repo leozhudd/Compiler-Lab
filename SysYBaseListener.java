@@ -147,18 +147,6 @@ public class SysYBaseListener implements SysYListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterUnaryOp(SysYParser.UnaryOpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitUnaryOp(SysYParser.UnaryOpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterNumber(SysYParser.NumberContext ctx) { }
 	/**
 	 * {@inheritDoc}

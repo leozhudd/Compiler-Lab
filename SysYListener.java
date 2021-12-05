@@ -117,16 +117,6 @@ public interface SysYListener extends ParseTreeListener {
 	 */
 	void exitPrimaryExp(SysYParser.PrimaryExpContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SysYParser#unaryOp}.
-	 * @param ctx the parse tree
-	 */
-	void enterUnaryOp(SysYParser.UnaryOpContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link SysYParser#unaryOp}.
-	 * @param ctx the parse tree
-	 */
-	void exitUnaryOp(SysYParser.UnaryOpContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link SysYParser#number}.
 	 * @param ctx the parse tree
 	 */

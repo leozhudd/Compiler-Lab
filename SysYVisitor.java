@@ -76,12 +76,6 @@ public interface SysYVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitPrimaryExp(SysYParser.PrimaryExpContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SysYParser#unaryOp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitUnaryOp(SysYParser.UnaryOpContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link SysYParser#number}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

@@ -16,9 +16,12 @@ MAIN: 'main';
 RETURN: 'return';
 SEMICOLON: ';';
 INT: 'int';
+
+// 在词法规则中那些不会被语法规则直接调用的词法规则可以用一个fragment关键字来标识，fragment标识的规则只能为其它词法规则提供基础
 HEXADECIMAL_CONST: ('0x' | '0X') [0-9a-fA-F]+;
 OCTAL_CONST: '0' [0-7]*;
 DECIMAL_CONST: [1-9] [0-9]*;
+
 WHITE_SPACE: [ \t\r\n]+ -> skip; // 解析时忽略空格、Tab、换行、\r
 LINE_COMMENT : '//' .*? '\n' -> skip ; // 解析时忽略行注释
 COMMENT : '/*' .*? '*/' -> skip ; // 解析时忽略内注释
@@ -37,8 +40,7 @@ addExp: mulExp
 mulExp: unaryExp
     | mulExp op=(MUL|DIV|MOD) unaryExp;
 unaryExp: primaryExp
-    | unaryOp unaryExp;
+    | op=(ADD|SUB) unaryExp;
 primaryExp: L_PAREN exp R_PAREN | number;
-unaryOp: ADD | SUB;
 number: DECIMAL_CONST | OCTAL_CONST | HEXADECIMAL_CONST;
 

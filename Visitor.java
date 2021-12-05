@@ -171,18 +171,14 @@ public class Visitor extends SysYBaseVisitor<String> {
                 String reg = "%" + regId++;
                 System.out.println("    " + reg + " = call i32 @getint()");
                 return reg;
-                // funcFlag = true;
             } else if (func.equals("putint") && ctx.funcRParams() != null) {
                 System.out.println("    call void @putint(i32 " + visit(ctx.funcRParams()) + ")");
-                // funcFlag = true;
             } else if (func.equals("getch") && ctx.funcRParams() == null) {
                 String reg = "%" + regId++;
                 System.out.println("    " + reg + " = call i32 @getch()");
                 return reg;
-                // funcFlag = true;
             } else if (func.equals("putch") && ctx.funcRParams() != null) {
                 System.out.println("    call void @putch(i32 " + visit(ctx.funcRParams()) + ")");
-                // funcFlag = true;
             } else {
                 System.exit(1);
             }
@@ -242,27 +238,6 @@ public class Visitor extends SysYBaseVisitor<String> {
 }
 
 
-/*
-变量赋值
-@Override
-    public Integer visitAssign(ExprParser.AssignContext ctx) {
-        String id = ctx.ID().getText();
-        Integer value = visit(ctx.expr());
-        assignMap.put(id, value);
-        return value;
-    }
-
-@Override
-    public Integer visitId(MathParser.IdContext ctx)
-    {
-        String id = ctx.ID().getText();
-        if(assignMap.containsKey(id))
-        {
-            return assignMap.get(id);
-        }
-        return 0;
-    }
- */
 class Variable {
     String name;
     String reg;

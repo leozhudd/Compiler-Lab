@@ -43,8 +43,7 @@ public class Visitor extends SysYBaseVisitor<String> {
     // stmt: RETURN exp SEMICOLON;
     @Override
     public String visitStmt(SysYParser.StmtContext ctx) {
-        String reg = visit(ctx.exp());
-        System.out.println("    ret i32 " + reg);
+        System.out.println("    ret i32 " + visit(ctx.exp()));
         return null;
     }
 
@@ -83,7 +82,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                 System.out.println("    " + reg + " = mul i32 " + a + ", " + b);
             }
             else if(ctx.op.getType() == SysYParser.DIV) {
-                System.out.println("    " + reg + " = div i32 " + a + ", " + b);
+                System.out.println("    " + reg + " = sdiv i32 " + a + ", " + b);
             }
             else {
                 System.out.println("    " + reg + " = mod i32 " + a + ", " + b);

@@ -151,9 +151,9 @@ public class Visitor extends SysYBaseVisitor<String> {
         BigInteger dec = new BigInteger(hex, 8);
         return String.valueOf(dec.intValue());
     }
-    public static int str2int(String s) {
-        return Integer.parseInt(s);
-    }
+//    public static int str2int(String s) {
+//        return Integer.parseInt(s);
+//    }
 }
 
 

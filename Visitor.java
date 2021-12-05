@@ -1,7 +1,11 @@
+import org.antlr.v4.runtime.ParserRuleContext;
+
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Visitor extends SysYBaseVisitor<String> {
-    // private static Map<String,Integer> assignMap = new HashMap<>();
+    private Map<String,Variable> assignMap = new HashMap<>();
     private int regId = 1; // 从1开始
 
     // compUnit: funcDef;
@@ -10,11 +14,52 @@ public class Visitor extends SysYBaseVisitor<String> {
         return visitChildren(ctx);
     }
 
-    // funcDef: funcType ident L_PAREN R_PAREN block;
+    // constDef: Ident '=' constInitVal;
+    @Override
+    public String visitConstDef(SysYParser.ConstDefContext ctx) {
+        String name = ctx.Ident().getText();
+        if(assignMap.containsKey(name)) { // 如果符号表中已经有这个名字，报错退出
+            System.exit(1);
+        }
+        String ptr_reg = "%" + regId++;
+        System.out.println("    " + ptr_reg + " = alloca i32");
+        String value = visit(ctx.constInitVal());
+        System.out.println("    store i32 " + value + ", i32* " + ptr_reg);
+        assignMap.put(name, new Variable(name, ptr_reg, true, true));
+        return null;
+    }
+
+    // varDef: Ident | Ident '=' initVal;
+    @Override
+    public String visitVarDef(SysYParser.VarDefContext ctx) {
+        String name = ctx.Ident().getText();
+        if(assignMap.containsKey(name)) {
+            System.exit(1);
+        }
+        String ptr_reg = "%" + regId++;
+        System.out.println("    " + ptr_reg + " = alloca i32");
+        if(ctx.initVal() != null) { // 有指定初值
+            String value = visit(ctx.initVal());
+            System.out.println("    store i32 " + value + ", i32* " + ptr_reg);
+            assignMap.put(name, new Variable(name, ptr_reg, true, true));
+        }
+        else { // 没有指定初值
+            assignMap.put(name, new Variable(name, ptr_reg, true, false));
+        }
+        return null;
+    }
+
+    // funcDef: funcType Ident '(' ')' block;
     @Override
     public String visitFuncDef(SysYParser.FuncDefContext ctx) {
+        System.out.println("declare i32 @getint()");
+        System.out.println("declare void @putint(i32)");
+        System.out.println("declare i32 @getch()");
+        System.out.println("declare void @putch(i32)");
         System.out.print("define dso_local ");
-        return visitChildren(ctx);
+        visit(ctx.funcType());
+        System.out.print("@" + ctx.Ident().getText() + "()");
+        return visit(ctx.block());
     }
 
     // funcType: INT;
@@ -24,26 +69,46 @@ public class Visitor extends SysYBaseVisitor<String> {
         return null;
     }
 
-    // ident: MAIN;
-    @Override
-    public String visitIdent(SysYParser.IdentContext ctx) {
-        System.out.print("@main() ");
-        return null;
-    }
-
-    // block: L_BRACE stmt R_BRACE;
+    // block: '{' (blockItem)* '}';
     @Override
     public String visitBlock(SysYParser.BlockContext ctx) {
         System.out.println("{");
-        visit(ctx.stmt());
+        visitChildren(ctx);
         System.out.println("}");
         return null;
     }
 
-    // stmt: RETURN exp SEMICOLON;
+    // stmt: lVal '=' exp ';' | (exp)? ';' | 'return' exp ';';
+    // TODO: 变量赋值|表达式逗你玩|函数返回
     @Override
     public String visitStmt(SysYParser.StmtContext ctx) {
-        System.out.println("    ret i32 " + visit(ctx.exp()));
+        if(ctx.RETURN() != null) {
+            System.out.println("    ret i32 " + visit(ctx.exp()));
+        }
+        else if(ctx.lVal() != null) {
+            Variable val = assignMap.get(ctx.lVal().getText());
+            if(val != null) {
+                val.valInit = true;
+                String source_reg = visit(ctx.exp());
+                System.out.println("    store i32 " + source_reg + ", i32* " + val.reg);
+            }
+            else System.exit(1);
+        }
+        else {
+            visit(ctx.exp());
+        }
+        return null;
+    }
+
+    @Override
+    public String visitLVal(SysYParser.LValContext ctx) {
+        Variable val = assignMap.get(ctx.Ident().getText());
+        if(val != null && val.valInit) {
+            String target_reg = "%" + regId++;
+            System.out.println("    " + target_reg + " = load i32, i32* " + val.reg);
+            return target_reg;
+        }
+        else System.exit(1);
         return null;
     }
 
@@ -74,7 +139,7 @@ public class Visitor extends SysYBaseVisitor<String> {
     // mulExp: unaryExp | mulExp op=(MUL|DIV|MOD) unaryExp;
     @Override
     public String visitMulExp(SysYParser.MulExpContext ctx) {
-        if(ctx.mulExp() != null) {
+        if(ctx.mulExp() != null) { // 多项
             String a = visit(ctx.mulExp());
             String b = visit(ctx.unaryExp());
             String reg = "%" + regId++;
@@ -90,14 +155,38 @@ public class Visitor extends SysYBaseVisitor<String> {
             return reg;
         }
         else return visit(ctx.unaryExp());
-
     }
 
-    // unaryExp: primaryExp | unaryOp unaryExp;
+    // unaryExp: unaryExp: primaryExp
+    //    | op=(ADD|SUB) unaryExp
+    //    | Ident '(' (funcRParams)? ')';
     @Override
     public String visitUnaryExp(SysYParser.UnaryExpContext ctx) {
         if(ctx.primaryExp() != null) { // 是[primaryExp]
             return visit(ctx.primaryExp());
+        }
+        else if(ctx.Ident() != null) { // [func]
+            String func = ctx.Ident().getText();
+            if(func.equals("getint") && ctx.funcRParams() == null) {
+                String reg = "%" + regId++;
+                System.out.println("    " + reg + " = call i32 @getint()");
+                return reg;
+                // funcFlag = true;
+            } else if (func.equals("putint") && ctx.funcRParams() != null) {
+                System.out.println("    call void @putint(i32 " + visit(ctx.funcRParams()) + ")");
+                // funcFlag = true;
+            } else if (func.equals("getch") && ctx.funcRParams() == null) {
+                String reg = "%" + regId++;
+                System.out.println("    " + reg + " = call i32 @getch()");
+                return reg;
+                // funcFlag = true;
+            } else if (func.equals("putch") && ctx.funcRParams() != null) {
+                System.out.println("    call void @putch(i32 " + visit(ctx.funcRParams()) + ")");
+                // funcFlag = true;
+            } else {
+                System.exit(1);
+            }
+            return null;
         }
         else { // 是[unaryExp]
             String unaryExp = visit(ctx.unaryExp());
@@ -110,25 +199,24 @@ public class Visitor extends SysYBaseVisitor<String> {
         }
     }
 
-    // primaryExp: L_PAREN exp R_PAREN | number;
+//    @Override
+//    public String visitFuncRParams(SysYParser.FuncRParamsContext ctx) {
+////        String param = "";
+////        for(SysYParser.ExpContext exp: ctx.exp()){
+////            param = param + visit(exp);
+////        }
+////        return param;
+//        return visit(ctx.exp(0));
+//    }
+
+    // primaryExp: '(' exp ')' | lVal | number;
     @Override
     public String visitPrimaryExp(SysYParser.PrimaryExpContext ctx) {
-        if(ctx.L_PAREN() != null) {
+        if(ctx.exp() != null) { // exp特判
             return visit(ctx.exp());
         }
-        else {
-            return visit(ctx.number());
-        }
+        else return visitChildren(ctx);
     }
-
-    // unaryOp: ADD | SUB;
-//    @Override
-//    public String visitUnaryOp(SysYParser.UnaryOpContext ctx) {
-//        if(ctx.ADD() != null) {
-//            return "1";
-//        }
-//        else return "-1";
-//    }
 
     // number: DECIMAL_CONST | OCTAL_CONST | HEXADECIMAL_CONST;
     @Override
@@ -151,9 +239,6 @@ public class Visitor extends SysYBaseVisitor<String> {
         BigInteger dec = new BigInteger(hex, 8);
         return String.valueOf(dec.intValue());
     }
-//    public static int str2int(String s) {
-//        return Integer.parseInt(s);
-//    }
 }
 
 
@@ -178,3 +263,16 @@ public class Visitor extends SysYBaseVisitor<String> {
         return 0;
     }
  */
+class Variable {
+    String name;
+    String reg;
+    boolean isConst;
+    boolean valInit;
+
+    public Variable(String name, String reg, boolean isConst, boolean valInit) {
+        this.name = name;
+        this.reg = reg;
+        this.isConst = isConst;
+        this.valInit = valInit;
+    }
+}

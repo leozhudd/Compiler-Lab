@@ -1,3 +1,5 @@
 int main() {
-    return 1 + (-2) * (3 / (4 - 5%555));
+    int a = getint();
+    putint();
+    return 0;
 }

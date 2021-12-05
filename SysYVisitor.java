@@ -1,4 +1,4 @@
-// Generated from /Users/leozhudd/Desktop/大三上课程Doc/编译原理/Labs/Lab1/SysY.g4 by ANTLR 4.9.1
+// Generated from /Users/leozhudd/Desktop/大三上课程Doc/编译原理/Labs/Lab3/SysY.g4 by ANTLR 4.9.1
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -16,6 +16,60 @@ public interface SysYVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitCompUnit(SysYParser.CompUnitContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SysYParser#decl}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDecl(SysYParser.DeclContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#constDecl}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitConstDecl(SysYParser.ConstDeclContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#bType}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBType(SysYParser.BTypeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#constDef}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitConstDef(SysYParser.ConstDefContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#constInitVal}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitConstInitVal(SysYParser.ConstInitValContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#constExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitConstExp(SysYParser.ConstExpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#varDecl}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVarDecl(SysYParser.VarDeclContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#varDef}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVarDef(SysYParser.VarDefContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#initVal}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitInitVal(SysYParser.InitValContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SysYParser#funcDef}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -28,23 +82,29 @@ public interface SysYVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFuncType(SysYParser.FuncTypeContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SysYParser#ident}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIdent(SysYParser.IdentContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link SysYParser#block}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitBlock(SysYParser.BlockContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SysYParser#blockItem}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBlockItem(SysYParser.BlockItemContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SysYParser#stmt}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitStmt(SysYParser.StmtContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#lVal}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLVal(SysYParser.LValContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SysYParser#exp}.
 	 * @param ctx the parse tree
@@ -69,6 +129,12 @@ public interface SysYVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitUnaryExp(SysYParser.UnaryExpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#funcRParams}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFuncRParams(SysYParser.FuncRParamsContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SysYParser#primaryExp}.
 	 * @param ctx the parse tree

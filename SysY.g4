@@ -8,14 +8,8 @@ SUB: '-';
 MUL: '*';
 DIV: '/';
 MOD: '%';
-L_PAREN: '(';
-R_PAREN: ')';
-L_BRACE: '{';
-R_BRACE: '}';
-MAIN: 'main';
-RETURN: 'return';
-SEMICOLON: ';';
 INT: 'int';
+RETURN: 'return';
 
 // 在词法规则中那些不会被语法规则直接调用的词法规则可以用一个fragment关键字来标识，fragment标识的规则只能为其它词法规则提供基础
 HEXADECIMAL_CONST: ('0x' | '0X') [0-9a-fA-F]+;
@@ -26,13 +20,31 @@ WHITE_SPACE: [ \t\r\n]+ -> skip; // 解析时忽略空格、Tab、换行、\r
 LINE_COMMENT : '//' .*? '\n' -> skip ; // 解析时忽略行注释
 COMMENT : '/*' .*? '*/' -> skip ; // 解析时忽略内注释
 
+Ident: [a-zA-Z_] [a-zA-Z0-9_]*; // 标识符（常量名变量名函数名）必须非数字开头
+
 // 语法分析，G[compUnit]
+// 【*】代表0个或多个，【+】代表一个或多个，【?】代表0个或一个
 compUnit: funcDef;
-funcDef: funcType ident L_PAREN R_PAREN block;
+
+decl: constDecl | varDecl; // 常量定义与变量定义
+constDecl: 'const' bType constDef (',' constDef)* ';'; // 支持同时声明多个
+bType: INT;
+constDef: Ident '=' constInitVal;
+constInitVal: constExp;
+constExp: addExp;
+varDecl: bType varDef (',' varDef)* ';';
+varDef: Ident | Ident '=' initVal;
+initVal: exp;
+
+funcDef: funcType Ident '(' ')' block;
 funcType: INT;
-ident: MAIN;
-block: L_BRACE stmt R_BRACE;
-stmt: RETURN exp SEMICOLON;
+block: '{' (blockItem)* '}';
+blockItem: decl | stmt;
+stmt: lVal '=' exp ';'      // # assign
+    | (exp)? ';'            // # exp_only
+    | RETURN exp ';'      // # return
+;
+lVal: Ident;
 exp: addExp;
 // 引入op变量更友好地标记运算符。在Visitor的上下文（ctx）中可以，ctx.op 这样直接获取到运算符。
 addExp: mulExp
@@ -40,7 +52,9 @@ addExp: mulExp
 mulExp: unaryExp
     | mulExp op=(MUL|DIV|MOD) unaryExp;
 unaryExp: primaryExp
-    | op=(ADD|SUB) unaryExp;
-primaryExp: L_PAREN exp R_PAREN | number;
+    | op=(ADD|SUB) unaryExp
+    | Ident '(' (funcRParams)? ')';
+funcRParams: exp (',' exp)*;
+primaryExp: '(' exp ')' | lVal | number;
 number: DECIMAL_CONST | OCTAL_CONST | HEXADECIMAL_CONST;
 

@@ -85,7 +85,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                 System.out.println("    " + reg + " = sdiv i32 " + a + ", " + b);
             }
             else {
-                System.out.println("    " + reg + " = mod i32 " + a + ", " + b);
+                System.out.println("    " + reg + " = srem i32 " + a + ", " + b);
             }
             return reg;
         }

@@ -87,7 +87,7 @@ public class Visitor extends SysYBaseVisitor<String> {
         }
         else if(ctx.lVal() != null) {
             Variable val = assignMap.get(ctx.lVal().getText());
-            if(val != null) {
+            if(val != null && !val.isConst) {
                 val.valInit = true;
                 String source_reg = visit(ctx.exp());
                 System.out.println("    store i32 " + source_reg + ", i32* " + val.reg);

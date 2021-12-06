@@ -41,10 +41,10 @@ public class Visitor extends SysYBaseVisitor<String> {
         if(ctx.initVal() != null) { // 有指定初值
             String value = visit(ctx.initVal());
             System.out.println("    store i32 " + value + ", i32* " + ptr_reg);
-            assignMap.put(name, new Variable(name, ptr_reg, true, true));
+            assignMap.put(name, new Variable(name, ptr_reg, false, true));
         }
         else { // 没有指定初值
-            assignMap.put(name, new Variable(name, ptr_reg, true, false));
+            assignMap.put(name, new Variable(name, ptr_reg, false, false));
         }
         return null;
     }
@@ -95,6 +95,7 @@ public class Visitor extends SysYBaseVisitor<String> {
             else System.exit(4);
         }
         else {
+            // TODO: 如果是0次？
             visit(ctx.exp());
         }
         return null;

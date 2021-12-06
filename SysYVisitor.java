@@ -1,4 +1,4 @@
-// Generated from /Users/leozhudd/Desktop/大三上课程Doc/编译原理/Labs/Lab3/SysY.g4 by ANTLR 4.9.1
+// Generated from /Users/leozhudd/Desktop/大三上课程Doc/编译原理/Labs/Lab4/SysY.g4 by ANTLR 4.9.1
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -111,6 +111,36 @@ public interface SysYVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitExp(SysYParser.ExpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#cond}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCond(SysYParser.CondContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#relExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRelExp(SysYParser.RelExpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#eqExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitEqExp(SysYParser.EqExpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#lAndExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLAndExp(SysYParser.LAndExpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#lOrExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLOrExp(SysYParser.LOrExpContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SysYParser#addExp}.
 	 * @param ctx the parse tree

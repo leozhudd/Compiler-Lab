@@ -1,4 +1,4 @@
-// Generated from /Users/leozhudd/Desktop/大三上课程Doc/编译原理/Labs/Lab3/SysY.g4 by ANTLR 4.9.1
+// Generated from /Users/leozhudd/Desktop/大三上课程Doc/编译原理/Labs/Lab4/SysY.g4 by ANTLR 4.9.1
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -176,6 +176,56 @@ public interface SysYListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitExp(SysYParser.ExpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SysYParser#cond}.
+	 * @param ctx the parse tree
+	 */
+	void enterCond(SysYParser.CondContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SysYParser#cond}.
+	 * @param ctx the parse tree
+	 */
+	void exitCond(SysYParser.CondContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SysYParser#relExp}.
+	 * @param ctx the parse tree
+	 */
+	void enterRelExp(SysYParser.RelExpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SysYParser#relExp}.
+	 * @param ctx the parse tree
+	 */
+	void exitRelExp(SysYParser.RelExpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SysYParser#eqExp}.
+	 * @param ctx the parse tree
+	 */
+	void enterEqExp(SysYParser.EqExpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SysYParser#eqExp}.
+	 * @param ctx the parse tree
+	 */
+	void exitEqExp(SysYParser.EqExpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SysYParser#lAndExp}.
+	 * @param ctx the parse tree
+	 */
+	void enterLAndExp(SysYParser.LAndExpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SysYParser#lAndExp}.
+	 * @param ctx the parse tree
+	 */
+	void exitLAndExp(SysYParser.LAndExpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SysYParser#lOrExp}.
+	 * @param ctx the parse tree
+	 */
+	void enterLOrExp(SysYParser.LOrExpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SysYParser#lOrExp}.
+	 * @param ctx the parse tree
+	 */
+	void exitLOrExp(SysYParser.LOrExpContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SysYParser#addExp}.
 	 * @param ctx the parse tree

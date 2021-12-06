@@ -74,7 +74,7 @@ public class Visitor extends SysYBaseVisitor<String> {
     // block: '{' (blockItem)* '}';
     @Override
     public String visitBlock(SysYParser.BlockContext ctx) {
-        // TODO: 遇到新的Block，重置符号表，分配label寄存器。
+        // TODO: 【lab5】遇到新的Block，重置符号表，分配label寄存器。
         //  这个实验只涉及从IF开辟新Block（if->stmt->block）
         /*基本块是一段顺序执行的的指令，控制流只能从一个基本块的第一条指令开始执行，
         从最后一条指令退出基本块，或是跳转到其他基本块（包括自己）的第一条指令，或是退出程序。
@@ -87,10 +87,10 @@ public class Visitor extends SysYBaseVisitor<String> {
     // stmt: lVal '=' exp ';' | (exp)? ';' | 'return' exp ';' | block | 'if' '(' cond ')' stmt ('else' stmt)?
     @Override
     public String visitStmt(SysYParser.StmtContext ctx) {
-        if(ctx.RETURN() != null) {
+        if(ctx.RETURN() != null) { // Return
             System.out.println("    ret i32 " + visit(ctx.exp()));
         }
-        else if(ctx.lVal() != null) {
+        else if(ctx.lVal() != null) { // Assign
             Variable val = assignMap.get(ctx.lVal().getText());
             if(val != null && !val.isConst) {
                 val.valInit = true;
@@ -99,11 +99,10 @@ public class Visitor extends SysYBaseVisitor<String> {
             }
             else System.exit(4);
         }
-        else if(ctx.block() != null) {
+        else if(ctx.block() != null) { // Block
             visit(ctx.block());
         }
-        else if(ctx.cond() != null) {
-            // TODO: if-stmt
+        else if(ctx.cond() != null) { // IF-ELSE
             String cond_reg = visit(ctx.cond());
             String true_reg = "%r" + regId++;
             String false_reg = "%r" + regId++;
@@ -266,7 +265,6 @@ public class Visitor extends SysYBaseVisitor<String> {
         else return oct2dec(ctx.getText());
     }
 
-    // TODO：完成四种条件表达式的编写
     // relExp: addExp
     //    | relExp op=('<'|'>'|'<='|'>=') addExp;
     @Override
@@ -335,7 +333,7 @@ public class Visitor extends SysYBaseVisitor<String> {
             return reg;
         }
     }
-// TODO: 短路求值挑战实验
+// TODO: 条件表达式短路求值【挑战实验】
     // lOrExp: lAndExp | lOrExp '||' lAndExp;
     @Override
     public String visitLOrExp(SysYParser.LOrExpContext ctx) {

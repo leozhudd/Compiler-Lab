@@ -19,7 +19,7 @@ public class Visitor extends SysYBaseVisitor<String> {
         if(assignMap.containsKey(name)) { // 如果符号表中已经有这个名字，报错退出
             System.exit(2);
         }
-        String ptr_reg = "%" + regId++;
+        String ptr_reg = "%r" + regId++;
         System.out.println("    " + ptr_reg + " = alloca i32");
         String value = visit(ctx.constInitVal());
         System.out.println("    store i32 " + value + ", i32* " + ptr_reg);
@@ -34,7 +34,7 @@ public class Visitor extends SysYBaseVisitor<String> {
         if(assignMap.containsKey(name)) {
             System.exit(3);
         }
-        String ptr_reg = "%" + regId++;
+        String ptr_reg = "%r" + regId++;
         System.out.println("    " + ptr_reg + " = alloca i32");
         if(ctx.initVal() != null) { // 有指定初值
             String value = visit(ctx.initVal());
@@ -105,9 +105,9 @@ public class Visitor extends SysYBaseVisitor<String> {
         else if(ctx.cond() != null) {
             // TODO: if-stmt
             String cond_reg = visit(ctx.cond());
-            String true_reg = "%" + regId++;
-            String false_reg = "%" + regId++;
-            String end_reg = "%" + regId++;
+            String true_reg = "%r" + regId++;
+            String false_reg = "%r" + regId++;
+            String end_reg = "%r" + regId++;
             System.out.println("    br i1 " + cond_reg + ", label " + true_reg + ", label " + false_reg);
 
             // TRUE-BLOCK
@@ -135,7 +135,7 @@ public class Visitor extends SysYBaseVisitor<String> {
     public String visitLVal(SysYParser.LValContext ctx) {
         Variable val = assignMap.get(ctx.Ident().getText());
         if(val != null && val.valInit) {
-            String target_reg = "%" + regId++;
+            String target_reg = "%r" + regId++;
             System.out.println("    " + target_reg + " = load i32, i32* " + val.reg);
             return target_reg;
         }
@@ -155,7 +155,7 @@ public class Visitor extends SysYBaseVisitor<String> {
         if(ctx.addExp() != null) {
             String a = visit(ctx.addExp());
             String b = visit(ctx.mulExp());
-            String reg = "%" + regId++;
+            String reg = "%r" + regId++;
             if(ctx.op.getType() == SysYParser.ADD) {
                 System.out.println("    " + reg + " = add i32 " + a + ", " + b);
             }
@@ -173,7 +173,7 @@ public class Visitor extends SysYBaseVisitor<String> {
         if(ctx.mulExp() != null) { // 多项
             String a = visit(ctx.mulExp());
             String b = visit(ctx.unaryExp());
-            String reg = "%" + regId++;
+            String reg = "%r" + regId++;
             if(ctx.op.getType() == SysYParser.MUL) {
                 System.out.println("    " + reg + " = mul i32 " + a + ", " + b);
             }
@@ -199,13 +199,13 @@ public class Visitor extends SysYBaseVisitor<String> {
         else if(ctx.Ident() != null) { // [func]
             String func = ctx.Ident().getText();
             if(func.equals("getint") && ctx.funcRParams() == null) {
-                String reg = "%" + regId++;
+                String reg = "%r" + regId++;
                 System.out.println("    " + reg + " = call i32 @getint()");
                 return reg;
             } else if (func.equals("putint") && ctx.funcRParams() != null) {
                 System.out.println("    call void @putint(i32 " + visit(ctx.funcRParams()) + ")");
             } else if (func.equals("getch") && ctx.funcRParams() == null) {
-                String reg = "%" + regId++;
+                String reg = "%r" + regId++;
                 System.out.println("    " + reg + " = call i32 @getch()");
                 return reg;
             } else if (func.equals("putch") && ctx.funcRParams() != null) {
@@ -218,13 +218,13 @@ public class Visitor extends SysYBaseVisitor<String> {
         else { // 是[unaryExp]
             String unaryExp = visit(ctx.unaryExp());
             if(ctx.op.getType() == SysYParser.SUB) { // Op=[-]，计算0-unaryExp
-                String reg = "%" + regId++;
+                String reg = "%r" + regId++;
                 System.out.println("    " + reg + " = sub i32 0, " + unaryExp);
                 return reg;
             }
             else if(ctx.op.getType() == SysYParser.NOT) {
-                String reg1 = "%" + regId++;
-                String reg2 = "%" + regId++;
+                String reg1 = "%r" + regId++;
+                String reg2 = "%r" + regId++;
                 System.out.println("    " + reg1 + " = icmp eq i32 " + unaryExp + ", 0");
                 System.out.println("    " + reg2 + " = zext i1 " + reg1 + " to i32");
                 return reg2;
@@ -278,7 +278,7 @@ public class Visitor extends SysYBaseVisitor<String> {
             String reg_a = visit(ctx.relExp());
             String reg_b = visit(ctx.addExp());
             String op = ctx.op.getText();
-            String reg = "%" + regId++;
+            String reg = "%r" + regId++;
             switch (op) {
                 case "<=":
                     System.out.println("    " + reg + " = icmp sle i32 " + reg_a + ", " + reg_b);
@@ -307,7 +307,7 @@ public class Visitor extends SysYBaseVisitor<String> {
             String reg_a = visit(ctx.eqExp());
             String reg_b = visit(ctx.relExp());
             String op = ctx.op.getText();
-            String reg = "%" + regId++;
+            String reg = "%r" + regId++;
             switch (op) {
                 case "==":
                     System.out.println("    " + reg + " = icmp eq i32 " + reg_a + ", " + reg_b);
@@ -329,7 +329,7 @@ public class Visitor extends SysYBaseVisitor<String> {
         else {
             String reg_a = visit(ctx.lAndExp());
             String reg_b = visit(ctx.eqExp());
-            String reg = "%" + regId++;
+            String reg = "%r" + regId++;
             System.out.println("    " + reg + " = and ii " + reg_a + ", " + reg_b);
             if_unary_flag = false;
             return reg;
@@ -345,7 +345,7 @@ public class Visitor extends SysYBaseVisitor<String> {
         else {
             String reg_a = visit(ctx.lOrExp());
             String reg_b = visit(ctx.lAndExp());
-            String reg = "%" + regId++;
+            String reg = "%r" + regId++;
             System.out.println("    " + reg + " = or ii " + reg_a + ", " + reg_b);
             if_unary_flag = false;
             return reg;
@@ -359,7 +359,7 @@ public class Visitor extends SysYBaseVisitor<String> {
         if_unary_flag = true;
         String src_reg = visit(ctx.lOrExp());
         if(if_unary_flag) {
-            String reg = "%" + regId++;
+            String reg = "%r" + regId++;
             System.out.println("    " + reg + " = icmp ne i32 " + src_reg + ", 0");
             return reg;
         }

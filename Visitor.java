@@ -19,7 +19,7 @@ public class Visitor extends SysYBaseVisitor<String> {
     public String visitConstDef(SysYParser.ConstDefContext ctx) {
         String name = ctx.Ident().getText();
         if(assignMap.containsKey(name)) { // 如果符号表中已经有这个名字，报错退出
-            System.exit(1);
+            System.exit(2);
         }
         String ptr_reg = "%" + regId++;
         System.out.println("    " + ptr_reg + " = alloca i32");
@@ -34,7 +34,7 @@ public class Visitor extends SysYBaseVisitor<String> {
     public String visitVarDef(SysYParser.VarDefContext ctx) {
         String name = ctx.Ident().getText();
         if(assignMap.containsKey(name)) {
-            System.exit(1);
+            System.exit(3);
         }
         String ptr_reg = "%" + regId++;
         System.out.println("    " + ptr_reg + " = alloca i32");
@@ -92,7 +92,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                 String source_reg = visit(ctx.exp());
                 System.out.println("    store i32 " + source_reg + ", i32* " + val.reg);
             }
-            else System.exit(1);
+            else System.exit(4);
         }
         else {
             visit(ctx.exp());
@@ -108,7 +108,7 @@ public class Visitor extends SysYBaseVisitor<String> {
             System.out.println("    " + target_reg + " = load i32, i32* " + val.reg);
             return target_reg;
         }
-        else System.exit(1);
+        else System.exit(5);
         return null;
     }
 
@@ -180,7 +180,7 @@ public class Visitor extends SysYBaseVisitor<String> {
             } else if (func.equals("putch") && ctx.funcRParams() != null) {
                 System.out.println("    call void @putch(i32 " + visit(ctx.funcRParams()) + ")");
             } else {
-                System.exit(1);
+                System.exit(6);
             }
             return null;
         }

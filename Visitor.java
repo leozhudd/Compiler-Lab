@@ -330,7 +330,7 @@ public class Visitor extends SysYBaseVisitor<String> {
             String reg_a = visit(ctx.lAndExp());
             String reg_b = visit(ctx.eqExp());
             String reg = "%r" + regId++;
-            System.out.println("    " + reg + " = and ii " + reg_a + ", " + reg_b);
+            System.out.println("    " + reg + " = and i1 " + reg_a + ", " + reg_b);
             if_unary_flag = false;
             return reg;
         }
@@ -346,7 +346,7 @@ public class Visitor extends SysYBaseVisitor<String> {
             String reg_a = visit(ctx.lOrExp());
             String reg_b = visit(ctx.lAndExp());
             String reg = "%r" + regId++;
-            System.out.println("    " + reg + " = or ii " + reg_a + ", " + reg_b);
+            System.out.println("    " + reg + " = or i1 " + reg_a + ", " + reg_b);
             if_unary_flag = false;
             return reg;
         }

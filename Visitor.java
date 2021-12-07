@@ -194,7 +194,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                 if(val.isConst) {
                     return String.valueOf(val.value);
                 }
-                else { // 如果调取的是变量的值，报错推出！！！
+                else { // 如果调取的是变量的值，报错退出！！！
                     System.exit(-1);
                 }
 

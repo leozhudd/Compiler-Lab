@@ -6,29 +6,49 @@ import java.util.Stack;
 public class Visitor extends SysYBaseVisitor<String> {
     private Stack<Map<String,Variable>>assignStack = new Stack<>();
     private int regId = 1; // 从1开始
+    private boolean globalFlag = true; // 指示全局变量定义
 
-    // compUnit: funcDef;
+    // compUnit: decl* funcDef;
     @Override
     public String visitCompUnit(SysYParser.CompUnitContext ctx) {
-        return visitChildren(ctx);
+        /*
+        先压一个栈，代表全局变量的符号表
+        此处的decl模块都是全局变量定义，需一直保持globalFlag=true
+        在访问funcDef进入主函数时，再置globalFlag=false
+         */
+        Map<String,Variable> assignMap = new HashMap<>(); // 声明全局变量的符号表
+        assignStack.push(assignMap); // 压入符号表栈
+        for(SysYParser.DeclContext e: ctx.decl()) {
+            visit(e);
+        }
+        globalFlag = false;
+        return visit(ctx.funcDef());
     }
 
     // constDef: Ident '=' constInitVal;
     @Override
     public String visitConstDef(SysYParser.ConstDefContext ctx) {
         String name = ctx.Ident().getText();
-//        if(assignStack.empty()) {
-//            System.exit(2);
-//        }
+        /*
+        判断全局变量
+        TODO: 全局变/常量声明中指定的初值表达式必须是常量表达式；
+            而未显式初始化的全局变量，其值均被初始化为 0。
+        */
         Map<String,Variable> assignMap = assignStack.peek(); // 取出符号表
         if(assignMap.containsKey(name)) { // 如果符号表中已经有这个名字，报错退出
             System.exit(2);
         }
-        String ptr_reg = "%r" + regId++;
-        System.out.println("    " + ptr_reg + " = alloca i32");
         String value = visit(ctx.constInitVal());
-        System.out.println("    store i32 " + value + ", i32* " + ptr_reg);
-        assignMap.put(name, new Variable(name, ptr_reg, true, true));
+        if(!globalFlag) { // 局部变量，需要alloca
+            String ptr_reg = "%r" + regId++;
+            System.out.println("    " + ptr_reg + " = alloca i32");
+            System.out.println("    store i32 " + value + ", i32* " + ptr_reg);
+            assignMap.put(name, new Variable(name, ptr_reg, true, true));
+        }
+        else { // 全局变量，不需要alloca
+            System.out.println("@" + name + " = dso_local global i32 " + value);
+            assignMap.put(name, new Variable(name, "@" + name, true, true));
+        }
         return null;
     }
 
@@ -37,19 +57,26 @@ public class Visitor extends SysYBaseVisitor<String> {
     public String visitVarDef(SysYParser.VarDefContext ctx) {
         String name = ctx.Ident().getText();
         Map<String,Variable> assignMap = assignStack.peek(); // 取出符号表
-        if(assignMap.containsKey(name)) {
+        if(assignMap.containsKey(name)) { // 如果符号表中已经有这个名字，报错退出
             System.exit(3);
         }
-        String ptr_reg = "%r" + regId++;
-        System.out.println("    " + ptr_reg + " = alloca i32");
-        if(ctx.initVal() != null) { // 有指定初值
-            String value = visit(ctx.initVal());
-            System.out.println("    store i32 " + value + ", i32* " + ptr_reg);
-            assignMap.put(name, new Variable(name, ptr_reg, false, true));
+        if(!globalFlag) { // 局部变量，需要alloca
+            String ptr_reg = "%r" + regId++;
+            System.out.println("    " + ptr_reg + " = alloca i32");
+            if (ctx.initVal() != null) { // 有指定初值
+                String value = visit(ctx.initVal());
+                System.out.println("    store i32 " + value + ", i32* " + ptr_reg);
+                assignMap.put(name, new Variable(name, ptr_reg, false, true));
+            } else { // 没有指定初值
+                assignMap.put(name, new Variable(name, ptr_reg, false, false));
+            }
         }
-        else { // 没有指定初值
-            assignMap.put(name, new Variable(name, ptr_reg, false, false));
+        else { // 全局变量，不需要alloca
+            String initVal = (ctx.initVal() != null) ? visit(ctx.initVal()) : "0"; // 根据有没有给初始值，没给的话赋值为0
+            System.out.println("@" + name + " = dso_local global i32 " + initVal);
+            assignMap.put(name, new Variable(name, "@" + name, false, true));
         }
+
         return null;
     }
 

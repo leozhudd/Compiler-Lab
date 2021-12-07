@@ -97,7 +97,7 @@ public class Visitor extends SysYBaseVisitor<String> {
         }
         else if(ctx.lVal() != null) { // Assign
             String name = ctx.lVal().getText();
-            Variable val;
+            Variable val = null;
             // 遍历符号表栈，找到最内层的变量并取出
             for(Map<String,Variable> assignMap: assignStack) {
                 if(assignMap.containsKey(name)) {
@@ -146,7 +146,7 @@ public class Visitor extends SysYBaseVisitor<String> {
     @Override
     public String visitLVal(SysYParser.LValContext ctx) {
         String name = ctx.Ident().getText();
-        Variable val;
+        Variable val = null;
         // 遍历符号表栈，找到最内层的变量并取出
         for(Map<String,Variable> assignMap: assignStack) {
             if(assignMap.containsKey(name)) {

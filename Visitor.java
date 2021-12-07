@@ -1,9 +1,10 @@
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
 
 public class Visitor extends SysYBaseVisitor<String> {
-    private Map<String,Variable> assignMap = new HashMap<>();
+    private Stack<Map<String,Variable>>assignStack = new Stack<>();
     private int regId = 1; // 从1开始
 
     // compUnit: funcDef;
@@ -16,6 +17,7 @@ public class Visitor extends SysYBaseVisitor<String> {
     @Override
     public String visitConstDef(SysYParser.ConstDefContext ctx) {
         String name = ctx.Ident().getText();
+        Map<String,Variable> assignMap = assignStack.peek(); // 取出符号表
         if(assignMap.containsKey(name)) { // 如果符号表中已经有这个名字，报错退出
             System.exit(2);
         }
@@ -31,6 +33,7 @@ public class Visitor extends SysYBaseVisitor<String> {
     @Override
     public String visitVarDef(SysYParser.VarDefContext ctx) {
         String name = ctx.Ident().getText();
+        Map<String,Variable> assignMap = assignStack.peek(); // 取出符号表
         if(assignMap.containsKey(name)) {
             System.exit(3);
         }
@@ -74,13 +77,15 @@ public class Visitor extends SysYBaseVisitor<String> {
     // block: '{' (blockItem)* '}';
     @Override
     public String visitBlock(SysYParser.BlockContext ctx) {
-        // TODO: 【lab5】遇到新的Block，重置符号表，分配label寄存器。
-        //  这个实验只涉及从IF开辟新Block（if->stmt->block）
-        /*基本块是一段顺序执行的的指令，控制流只能从一个基本块的第一条指令开始执行，
+        /*
+        基本块是一段顺序执行的的指令，控制流只能从一个基本块的第一条指令开始执行，
         从最后一条指令退出基本块，或是跳转到其他基本块（包括自己）的第一条指令，或是退出程序。
         基本块的最后一条指令必须是一个跳转指令或返回指令，且中间不会出现跳转和返回指令。
         */
+        Map<String,Variable> assignMap = new HashMap<>(); // 声明这个block的符号表
+        assignStack.push(assignMap); // 压入符号表栈
         visitChildren(ctx);
+        assignStack.pop(); // 删除这个block的符号表
         return null;
     }
 
@@ -91,7 +96,15 @@ public class Visitor extends SysYBaseVisitor<String> {
             System.out.println("    ret i32 " + visit(ctx.exp()));
         }
         else if(ctx.lVal() != null) { // Assign
-            Variable val = assignMap.get(ctx.lVal().getText());
+            String name = ctx.lVal().getText();
+            Variable val;
+            // 遍历符号表栈，找到最内层的变量并取出
+            for(Map<String,Variable> assignMap: assignStack) {
+                if(assignMap.containsKey(name)) {
+                    val = assignMap.get(name);
+                    break;
+                }
+            }
             if(val != null && !val.isConst) {
                 val.valInit = true;
                 String source_reg = visit(ctx.exp());
@@ -132,7 +145,15 @@ public class Visitor extends SysYBaseVisitor<String> {
 
     @Override
     public String visitLVal(SysYParser.LValContext ctx) {
-        Variable val = assignMap.get(ctx.Ident().getText());
+        String name = ctx.Ident().getText();
+        Variable val;
+        // 遍历符号表栈，找到最内层的变量并取出
+        for(Map<String,Variable> assignMap: assignStack) {
+            if(assignMap.containsKey(name)) {
+                val = assignMap.get(name);
+                break;
+            }
+        }
         if(val != null && val.valInit) {
             String target_reg = "%r" + regId++;
             System.out.println("    " + target_reg + " = load i32, i32* " + val.reg);

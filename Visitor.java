@@ -31,8 +31,7 @@ public class Visitor extends SysYBaseVisitor<String> {
         String name = ctx.Ident().getText();
         /*
         判断全局变量
-        TODO: 全局变/常量声明中指定的初值表达式必须是常量表达式；
-            而未显式初始化的全局变量，其值均被初始化为 0。
+        TODO: 全局变/常量声明中指定的初值表达式必须是常量表达式；并且需要折叠成一个数字。
         */
         Map<String,Variable> assignMap = assignStack.peek(); // 取出符号表
         if(assignMap.containsKey(name)) { // 如果符号表中已经有这个名字，报错退出
@@ -47,7 +46,7 @@ public class Visitor extends SysYBaseVisitor<String> {
         }
         else { // 全局变量，不需要alloca
             System.out.println("@" + name + " = dso_local global i32 " + value);
-            assignMap.put(name, new Variable(name, "@" + name, true, true));
+            assignMap.put(name, new Variable(name, "@" + name, true, true, Integer.parseInt(value)));
         }
         return null;
     }
@@ -74,9 +73,8 @@ public class Visitor extends SysYBaseVisitor<String> {
         else { // 全局变量，不需要alloca
             String initVal = (ctx.initVal() != null) ? visit(ctx.initVal()) : "0"; // 根据有没有给初始值，没给的话赋值为0
             System.out.println("@" + name + " = dso_local global i32 " + initVal);
-            assignMap.put(name, new Variable(name, "@" + name, false, true));
+            assignMap.put(name, new Variable(name, "@" + name, false, true, Integer.parseInt(initVal)));
         }
-
         return null;
     }
 
@@ -187,9 +185,14 @@ public class Visitor extends SysYBaseVisitor<String> {
             }
         }
         if(val != null && val.valInit) {
-            String target_reg = "%r" + regId++;
-            System.out.println("    " + target_reg + " = load i32, i32* " + val.reg);
-            return target_reg;
+            if(!globalFlag) {
+                String target_reg = "%r" + regId++;
+                System.out.println("    " + target_reg + " = load i32, i32* " + val.reg);
+                return target_reg;
+            }
+            else { // 全局变量，表达式压缩
+                return String.valueOf(val.value);
+            }
         }
         else System.exit(5);
         return null;
@@ -207,14 +210,21 @@ public class Visitor extends SysYBaseVisitor<String> {
         if(ctx.addExp() != null) {
             String a = visit(ctx.addExp());
             String b = visit(ctx.mulExp());
-            String reg = "%r" + regId++;
-            if(ctx.op.getType() == SysYParser.ADD) {
-                System.out.println("    " + reg + " = add i32 " + a + ", " + b);
+            if(!globalFlag) { // 如果是通常情况的表达式，正常计算输出每一步的指令
+                String reg = "%r" + regId++;
+                if(ctx.op.getType() == SysYParser.ADD) {
+                    System.out.println("    " + reg + " = add i32 " + a + ", " + b);
+                }
+                else {
+                    System.out.println("    " + reg + " = sub i32 " + a + ", " + b);
+                }
+                return reg;
             }
-            else {
-                System.out.println("    " + reg + " = sub i32 " + a + ", " + b);
+            else { // 如果是全局变量定义时的表达式，需要压缩（即计算后只返回一个数）
+                int res = Integer.parseInt(a) + Integer.parseInt(b);
+                return String.valueOf(res);
             }
-            return reg;
+
         }
         else return visit(ctx.mulExp());
     }
@@ -225,17 +235,22 @@ public class Visitor extends SysYBaseVisitor<String> {
         if(ctx.mulExp() != null) { // 多项
             String a = visit(ctx.mulExp());
             String b = visit(ctx.unaryExp());
-            String reg = "%r" + regId++;
-            if(ctx.op.getType() == SysYParser.MUL) {
-                System.out.println("    " + reg + " = mul i32 " + a + ", " + b);
+            if(!globalFlag) { // 如果是通常情况的表达式，正常计算输出每一步的指令
+                String reg = "%r" + regId++;
+                if (ctx.op.getType() == SysYParser.MUL) {
+                    System.out.println("    " + reg + " = mul i32 " + a + ", " + b);
+                } else if (ctx.op.getType() == SysYParser.DIV) {
+                    System.out.println("    " + reg + " = sdiv i32 " + a + ", " + b);
+                } else {
+                    System.out.println("    " + reg + " = srem i32 " + a + ", " + b);
+                }
+                return reg;
             }
-            else if(ctx.op.getType() == SysYParser.DIV) {
-                System.out.println("    " + reg + " = sdiv i32 " + a + ", " + b);
+            else { // 如果是全局变量定义时的表达式，需要压缩（即计算后只返回一个数）
+                int res = Integer.parseInt(a) * Integer.parseInt(b);
+                return String.valueOf(res);
             }
-            else {
-                System.out.println("    " + reg + " = srem i32 " + a + ", " + b);
-            }
-            return reg;
+
         }
         else return visit(ctx.unaryExp());
     }
@@ -270,9 +285,15 @@ public class Visitor extends SysYBaseVisitor<String> {
         else { // 是[unaryExp]
             String unaryExp = visit(ctx.unaryExp());
             if(ctx.op.getType() == SysYParser.SUB) { // Op=[-]，计算0-unaryExp
-                String reg = "%r" + regId++;
-                System.out.println("    " + reg + " = sub i32 0, " + unaryExp);
-                return reg;
+                if(!globalFlag) {
+                    String reg = "%r" + regId++;
+                    System.out.println("    " + reg + " = sub i32 0, " + unaryExp);
+                    return reg;
+                }
+                else { // 全局变量，表达式压缩
+                    int res = (-1) * Integer.parseInt(unaryExp);
+                    return String.valueOf(res);
+                }
             }
             else if(ctx.op.getType() == SysYParser.NOT) {
                 String reg1 = "%r" + regId++;
@@ -426,6 +447,7 @@ public class Visitor extends SysYBaseVisitor<String> {
         BigInteger dec = new BigInteger(hex, 8);
         return String.valueOf(dec.intValue());
     }
+
 }
 
 
@@ -434,6 +456,7 @@ class Variable {
     String reg;
     boolean isConst;
     boolean valInit;
+    int value;
 
     public Variable(String name, String reg, boolean isConst, boolean valInit) {
         this.name = name;
@@ -441,4 +464,13 @@ class Variable {
         this.isConst = isConst;
         this.valInit = valInit;
     }
+
+    public Variable(String name, String reg, boolean isConst, boolean valInit, int value) {
+        this.name = name;
+        this.reg = reg;
+        this.isConst = isConst;
+        this.valInit = valInit;
+        this.value = value;
+    }
+
 }

@@ -25,7 +25,7 @@ Ident: [a-zA-Z_] [a-zA-Z0-9_]*; // 标识符（常量名变量名函数名）必
 
 // 语法分析，G[compUnit]
 // 【*】代表0个或多个，【+】代表一个或多个，【?】代表0个或一个
-compUnit: funcDef;
+compUnit: decl* funcDef; // 全局变量定义
 
 decl: constDecl | varDecl; // 常量定义与变量定义
 constDecl: 'const' bType constDef (',' constDef)* ';'; // 支持同时声明多个

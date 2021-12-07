@@ -17,6 +17,9 @@ public class Visitor extends SysYBaseVisitor<String> {
     @Override
     public String visitConstDef(SysYParser.ConstDefContext ctx) {
         String name = ctx.Ident().getText();
+//        if(assignStack.empty()) {
+//            System.exit(2);
+//        }
         Map<String,Variable> assignMap = assignStack.peek(); // 取出符号表
         if(assignMap.containsKey(name)) { // 如果符号表中已经有这个名字，报错退出
             System.exit(2);
@@ -99,7 +102,8 @@ public class Visitor extends SysYBaseVisitor<String> {
             String name = ctx.lVal().getText();
             Variable val = null;
             // 遍历符号表栈，找到最内层的变量并取出
-            for(Map<String,Variable> assignMap: assignStack) {
+            for(int i=assignStack.size()-1;i>=0;i--) {
+                Map<String,Variable> assignMap = assignStack.get(i);
                 if(assignMap.containsKey(name)) {
                     val = assignMap.get(name);
                     break;
@@ -148,7 +152,8 @@ public class Visitor extends SysYBaseVisitor<String> {
         String name = ctx.Ident().getText();
         Variable val = null;
         // 遍历符号表栈，找到最内层的变量并取出
-        for(Map<String,Variable> assignMap: assignStack) {
+        for(int i=assignStack.size()-1;i>=0;i--) {
+            Map<String,Variable> assignMap = assignStack.get(i);
             if(assignMap.containsKey(name)) {
                 val = assignMap.get(name);
                 break;

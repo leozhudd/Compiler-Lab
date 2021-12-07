@@ -1,7 +1,8 @@
-int a = 5;
-int aa = (a+5)*2;
+int a = 6;
+int b = a + 1;
 int main() {
-    int b = getint();
-    putint(a + b);
+    int c = b;
+    int b = 8;
+    putint(b + c);
     return 0;
 }

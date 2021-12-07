@@ -191,7 +191,13 @@ public class Visitor extends SysYBaseVisitor<String> {
                 return target_reg;
             }
             else { // 全局变量，表达式压缩
-                return String.valueOf(val.value);
+                if(val.isConst) {
+                    return String.valueOf(val.value);
+                }
+                else { // 如果调取的是变量的值，报错推出！！！
+                    System.exit(-1);
+                }
+
             }
         }
         else System.exit(5);

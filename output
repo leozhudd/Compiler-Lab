@@ -1,0 +1,33 @@
+declare i32 @getint()
+declare void @putint(i32)
+declare i32 @getch()
+declare void @putch(i32)
+define dso_local i32 @main(){
+    %r1 = alloca i32
+    %r2 = call i32 @getint()
+    store i32 %r2, i32* %r1
+    %r3 = alloca i32
+    store i32 0, i32* %r3
+    %r4 = alloca i32
+    store i32 0, i32* %r4
+    br label %r5
+r5:
+    %r8 = load i32, i32* %r3
+    %r9 = load i32, i32* %r1
+    %r10 = icmp slt i32 %r8, %r9
+    br i1 %r10, label %r6, label %r7
+r6:
+    %r11 = load i32, i32* %r3
+    %r12 = add i32 %r11, 1
+    store i32 %r12, i32* %r3
+    %r13 = load i32, i32* %r4
+    %r14 = load i32, i32* %r3
+    %r15 = add i32 %r13, %r14
+    store i32 %r15, i32* %r4
+    %r16 = load i32, i32* %r4
+    call void @putint(i32 %r16)
+    call void @putch(i32 10)
+    br label %r5
+r7:
+    ret i32 0
+}

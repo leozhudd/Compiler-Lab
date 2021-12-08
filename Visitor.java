@@ -117,7 +117,9 @@ public class Visitor extends SysYBaseVisitor<String> {
         return null;
     }
 
-    // stmt: lVal '=' exp ';' | (exp)? ';' | 'return' exp ';' | block | 'if' '(' cond ')' stmt ('else' stmt)?
+    // stmt: lVal '=' exp ';' | (exp)? ';' | 'return' exp ';' | block
+    // | IF '(' cond ')' stmt ('else' stmt)?
+    // | WHILE '(' cond ')' stmt // while
     @Override
     public String visitStmt(SysYParser.StmtContext ctx) {
         if(ctx.RETURN() != null) { // Return
@@ -144,7 +146,7 @@ public class Visitor extends SysYBaseVisitor<String> {
         else if(ctx.block() != null) { // Block
             visit(ctx.block());
         }
-        else if(ctx.cond() != null) { // IF-ELSE
+        else if(ctx.IF() != null) { // IF-ELSE
             String cond_reg = visit(ctx.cond());
             String true_reg = "%r" + regId++;
             String false_reg = "%r" + regId++;
@@ -166,7 +168,26 @@ public class Visitor extends SysYBaseVisitor<String> {
             // END-BLOCK
             System.out.println(end_reg.substring(1) + ":");
         }
-        else {
+        else if(ctx.WHILE() != null) { // While
+            String while_reg = "%r" + regId++;
+            String do_reg = "%r" + regId++;
+            String out_reg = "%r" + regId++;
+            System.out.println("    br label " + while_reg);
+
+            // 条件判断部分
+            System.out.println(while_reg.substring(1) + ":");
+            String cond_reg = visit(ctx.cond());
+            System.out.println("    br i1 " + cond_reg + ", label " + do_reg + ", label " + out_reg);
+
+            // 循环体部分
+            System.out.println(do_reg.substring(1) + ":");
+            visit(ctx.stmt(0));
+            System.out.println("    br label " + while_reg);
+
+            // 结束部分
+            System.out.println(out_reg.substring(1) + ":");
+        }
+        else { // exp-only
             visit(ctx.exp());
         }
         return null;

@@ -45,14 +45,14 @@ funcDef: funcType Ident '(' ')' block;
 funcType: INT;
 block: '{' (blockItem)* '}';
 blockItem: decl | stmt;
-stmt: lVal '=' exp ';'      // # assign
-    | (exp)? ';'            // # exp_only
-    | RETURN exp ';'        // # return
+stmt: lVal '=' exp ';'      // assign
+    | (exp)? ';'            // exp_only
+    | RETURN exp ';'        // return
     | block                 // block
     | IF '(' cond ')' stmt ('else' stmt)? // if-else
     | WHILE '(' cond ')' stmt // while
-    | BREAK ';'
-    | CONTINUE ';'
+    | BREAK ';' // break
+    | CONTINUE ';' // continue
 ;
 lVal: Ident;
 

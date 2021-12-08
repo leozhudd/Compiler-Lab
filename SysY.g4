@@ -13,6 +13,8 @@ RETURN: 'return';
 NOT: '!';
 IF: 'if';
 WHILE: 'while';
+BREAK: 'break';
+CONTINUE: 'continue';
 
 // 在词法规则中那些不会被语法规则直接调用的词法规则可以用一个fragment关键字来标识，fragment标识的规则只能为其它词法规则提供基础
 HEXADECIMAL_CONST: ('0x' | '0X') [0-9a-fA-F]+;
@@ -49,6 +51,8 @@ stmt: lVal '=' exp ';'      // # assign
     | block                 // block
     | IF '(' cond ')' stmt ('else' stmt)? // if-else
     | WHILE '(' cond ')' stmt // while
+    | BREAK ';'
+    | CONTINUE ';'
 ;
 lVal: Ident;
 

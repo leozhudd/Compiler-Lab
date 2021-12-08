@@ -4,30 +4,59 @@ declare i32 @getch()
 declare void @putch(i32)
 define dso_local i32 @main(){
     %r1 = alloca i32
-    %r2 = call i32 @getint()
-    store i32 %r2, i32* %r1
-    %r3 = alloca i32
-    store i32 0, i32* %r3
-    %r4 = alloca i32
-    store i32 0, i32* %r4
-    br label %r5
-r5:
-    %r8 = load i32, i32* %r3
-    %r9 = load i32, i32* %r1
-    %r10 = icmp slt i32 %r8, %r9
-    br i1 %r10, label %r6, label %r7
-r6:
-    %r11 = load i32, i32* %r3
-    %r12 = add i32 %r11, 1
-    store i32 %r12, i32* %r3
-    %r13 = load i32, i32* %r4
-    %r14 = load i32, i32* %r3
-    %r15 = add i32 %r13, %r14
-    store i32 %r15, i32* %r4
-    %r16 = load i32, i32* %r4
-    call void @putint(i32 %r16)
+    store i32 48, i32* %r1
+    %r2 = alloca i32
+    store i32 1, i32* %r2
+    br label %r3
+r3:
+    %r6 = load i32, i32* %r2
+    %r7 = icmp slt i32 %r6, 12
+    br i1 %r7, label %r4, label %r5
+r4:
+    %r8 = alloca i32
+    store i32 0, i32* %r8
+    br label %r9
+r9:
+    %r12 = icmp eq i32 1, 1
+    br i1 %r12, label %r10, label %r11
+r10:
+    %r13 = load i32, i32* %r8
+    %r14 = srem i32 %r13, 3
+    %r15 = icmp eq i32 %r14, 1
+    br i1 %r15, label %r16, label %r17
+r16:
+    %r19 = load i32, i32* %r1
+    %r20 = add i32 %r19, 1
+    call void @putch(i32 %r20)
+    br label %r18
+r17:
+    %r21 = load i32, i32* %r1
+    call void @putch(i32 %r21)
+    br label %r18
+r18:
+    %r22 = load i32, i32* %r8
+    %r23 = add i32 %r22, 1
+    store i32 %r23, i32* %r8
+    %r24 = load i32, i32* %r8
+    %r25 = load i32, i32* %r2
+    %r26 = mul i32 2, %r25
+    %r27 = sub i32 %r26, 1
+    %r28 = icmp sge i32 %r24, %r27
+    br i1 %r28, label %r29, label %r30
+r29:
+    br label %r11
+    br label %r31
+r30:
+    br label %r31
+r31:
+    br label %r9
+r11:
     call void @putch(i32 10)
-    br label %r5
-r7:
+    %r32 = load i32, i32* %r2
+    %r33 = add i32 %r32, 1
+    store i32 %r33, i32* %r2
+    br label %r3
+    br label %r3
+r5:
     ret i32 0
 }

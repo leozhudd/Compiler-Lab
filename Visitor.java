@@ -1,3 +1,5 @@
+import javafx.util.Pair;
+
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
@@ -5,6 +7,7 @@ import java.util.Stack;
 
 public class Visitor extends SysYBaseVisitor<String> {
     private Stack<Map<String,Variable>>assignStack = new Stack<>();
+    private Stack<Pair<String,String>>loopLabels = new Stack<>(); // <条件判断label,退出label>
     private int regId = 1; // 从1开始
     private boolean globalFlag = true; // 指示全局变量定义
 
@@ -120,6 +123,8 @@ public class Visitor extends SysYBaseVisitor<String> {
     // stmt: lVal '=' exp ';' | (exp)? ';' | 'return' exp ';' | block
     // | IF '(' cond ')' stmt ('else' stmt)?
     // | WHILE '(' cond ')' stmt // while
+    // | BREAK ';'
+    // | CONTINUE ';'
     @Override
     public String visitStmt(SysYParser.StmtContext ctx) {
         if(ctx.RETURN() != null) { // Return
@@ -172,6 +177,7 @@ public class Visitor extends SysYBaseVisitor<String> {
             String while_reg = "%r" + regId++;
             String do_reg = "%r" + regId++;
             String out_reg = "%r" + regId++;
+            loopLabels.push(new Pair<>(while_reg, out_reg));
             System.out.println("    br label " + while_reg);
 
             // 条件判断部分
@@ -186,6 +192,13 @@ public class Visitor extends SysYBaseVisitor<String> {
 
             // 结束部分
             System.out.println(out_reg.substring(1) + ":");
+            loopLabels.pop();
+        }
+        else if(ctx.BREAK() != null) {
+            System.out.println("    br label " + loopLabels.peek().getValue()); // 跳转到退出
+        }
+        else if(ctx.CONTINUE() != null) {
+            System.out.println("    br label " + loopLabels.peek().getKey()); // 跳转到条件判断
         }
         else { // exp-only
             visit(ctx.exp());

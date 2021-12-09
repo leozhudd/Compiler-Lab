@@ -1,4 +1,4 @@
-import com.sun.tools.javac.util.Pair;
+import org.antlr.v4.runtime.misc.Pair;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
@@ -197,10 +197,10 @@ public class Visitor extends SysYBaseVisitor<String> {
             loopLabels.pop();
         }
         else if(ctx.BREAK() != null) {
-            System.out.println("    br label " + loopLabels.peek().snd); // 跳转到退出
+            System.out.println("    br label " + loopLabels.peek().b); // 跳转到退出
         }
         else if(ctx.CONTINUE() != null) {
-            System.out.println("    br label " + loopLabels.peek().fst); // 跳转到条件判断
+            System.out.println("    br label " + loopLabels.peek().a); // 跳转到条件判断
         }
         else if(ctx.exp() != null){ // exp-only
             visit(ctx.exp());

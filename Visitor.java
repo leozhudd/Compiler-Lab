@@ -1,5 +1,4 @@
-import javafx.util.Pair;
-
+import com.sun.tools.javac.util.Pair;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
@@ -120,8 +119,11 @@ public class Visitor extends SysYBaseVisitor<String> {
         return null;
     }
 
-    // stmt: lVal '=' exp ';' | (exp)? ';' | 'return' exp ';' | block
-    // | IF '(' cond ')' stmt ('else' stmt)?
+    //. stmt: lVal '=' exp ';'
+    // | (exp)? ';'
+    //. | 'return' exp ';'
+    //. | block
+    //. | IF '(' cond ')' stmt ('else' stmt)?
     // | WHILE '(' cond ')' stmt // while
     // | BREAK ';'
     // | CONTINUE ';'
@@ -195,12 +197,12 @@ public class Visitor extends SysYBaseVisitor<String> {
             loopLabels.pop();
         }
         else if(ctx.BREAK() != null) {
-            System.out.println("    br label " + loopLabels.peek().getValue()); // 跳转到退出
+            System.out.println("    br label " + loopLabels.peek().snd); // 跳转到退出
         }
         else if(ctx.CONTINUE() != null) {
-            System.out.println("    br label " + loopLabels.peek().getKey()); // 跳转到条件判断
+            System.out.println("    br label " + loopLabels.peek().fst); // 跳转到条件判断
         }
-        else { // exp-only
+        else if(ctx.exp() != null){ // exp-only
             visit(ctx.exp());
         }
         return null;

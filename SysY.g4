@@ -34,8 +34,10 @@ compUnit: decl* funcDef; // 全局变量定义
 decl: constDecl | varDecl; // 常量定义与变量定义
 constDecl: 'const' bType constDef (',' constDef)* ';'; // 支持同时声明多个
 bType: INT;
-constDef: Ident '=' constInitVal;
-constInitVal: constExp;
+constDef: Ident ('[' constExp ']' )* '=' constInitVal; // 支持数组
+constInitVal: constExp
+    | '{' (constInitVal (',' constInitVal)*)? '}' // 支持数组
+;
 constExp: addExp;
 varDecl: bType varDef (',' varDef)* ';';
 varDef: Ident | Ident '=' initVal;

@@ -1,6 +1,5 @@
+int a[10];
 int main() {
-    int a[5] = {};
-    int b;
-    b = 10;
-    return b;
+    a[2+2] = 5;
+    return a[4];
 }

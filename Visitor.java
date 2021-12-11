@@ -76,14 +76,10 @@ public class Visitor extends SysYBaseVisitor<String> {
                     }
                     arrayDim.add(Integer.parseInt(len));
                     arrayType.append("[").append(len).append(" x ");
-                    // System.out.print("[" + len + " x ");
-                    // 例如：System.out.println("%1 = alloca [2 x [2 x i32]]");
                 }
                 arrayType.append("i32");
-                // System.out.print("i32");
                 for(int i=0;i<dimension;i++) {
                     arrayType.append("]");
-                    // System.out.print("]");
                 }
                 System.out.println(arrayType);
                 globalFlag = false; // 还原flag
@@ -178,7 +174,7 @@ public class Visitor extends SysYBaseVisitor<String> {
         if(!arrayFlag) { // 普通常量的初始值
             return visit(ctx.constExp());
         }
-        else if(!globalFlag){ // 局部数组的初始值
+        else if(!globalFlag) { // 局部数组的初始值
             Variable array = assignStack.peek().get(nowInitArray);
             if(ctx.constExp() != null) { // constExp
                 String value_reg = visit(ctx.constExp());
@@ -231,7 +227,6 @@ public class Visitor extends SysYBaseVisitor<String> {
                 }
             }
             return null;
-
         }
     }
 
@@ -481,12 +476,20 @@ public class Visitor extends SysYBaseVisitor<String> {
             if(val == null) System.exit(-1);
             if(ctx.lVal().exp().size() != 0) { // 给数组赋值
                 if(val.isConst || val.arrayDim.size() != ctx.lVal().exp().size()) System.exit(-1); // 如果是常量数组或维度不匹配
+                
+                // getelemenptr之前先把所有exp算出来
+                ArrayList<String>expResults = new ArrayList<>();
+                for(SysYParser.ExpContext e: ctx.lVal().exp()) {
+                    // TODO: error: expected metadata after comma[, i32 %r30    %r31 = load i32, i32* %r10]
+                    expResults.add(visit(e));
+                }
+
                 String elm_reg = "%r" + regId++;
                 System.out.print("    " + elm_reg + " = getelementptr ");
                 System.out.print(val.arrayType + ", ");
                 System.out.print(val.arrayType + "* " + val.reg + ", i32 0");
-                for(SysYParser.ExpContext e: ctx.lVal().exp()) {
-                    System.out.print(", i32 " + visit(e));
+                for(String exp: expResults) {
+                    System.out.print(", i32 " + exp);
                 }
                 System.out.println();
                 String source_reg = visit(ctx.exp());
@@ -573,13 +576,21 @@ public class Visitor extends SysYBaseVisitor<String> {
         if(ctx.exp().size() != 0) { // 如果是数组
             if(val.arrayDim.size() != ctx.exp().size()) System.exit(-1); // 如果维度不匹配
 
+            // getelemenptr之前先把所有exp算出来
+            ArrayList<String>expResults = new ArrayList<>();
+            for(SysYParser.ExpContext e: ctx.exp()) {
+                // TODO: error: expected metadata after comma[, i32 %r30    %r31 = load i32, i32* %r10]
+                expResults.add(visit(e));
+            }
+
             String elm_reg = "%r" + regId++;
             System.out.print("    " + elm_reg + " = getelementptr ");
             System.out.print(val.arrayType + ", ");
             System.out.print(val.arrayType + "* " + val.reg + ", i32 0");
-            for(SysYParser.ExpContext e: ctx.exp()) {
-                System.out.print(", i32 " + visit(e));
+            for(String exp: expResults) {
+                System.out.print(", i32 " + exp);
             }
+
             System.out.println();
             String target_reg = "%r" + regId++;
             System.out.println("    " + target_reg + " = load i32, i32* " + elm_reg);

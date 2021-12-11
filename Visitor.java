@@ -571,8 +571,7 @@ public class Visitor extends SysYBaseVisitor<String> {
             }
         }
         if(val == null) System.exit(-1);
-        if(ctx.exp() != null) { // 如果是数组
-            // System.out.printf("声明%d, 调用%d", val.arrayDim.size(), ctx.exp().size());
+        if(ctx.exp().size() != 0) { // 如果是数组
             if(val.arrayDim.size() != ctx.exp().size()) System.exit(-1); // 如果维度不匹配
 
             String elm_reg = "%r" + regId++;

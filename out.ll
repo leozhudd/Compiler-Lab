@@ -3,7 +3,11 @@ source_filename = "llvm-link"
 target datalayout = "e-m:o-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-apple-macosx10.14.0"
 
-@a = dso_local global [5 x i32] [i32 1, i32 2, i32 3, i32 0, i32 0]
+@c = dso_local constant [2 x [1 x i32]] [[1 x i32] [i32 1], [1 x i32] [i32 3]]
+@b = dso_local global [2 x [3 x i32]] [[3 x i32] [i32 1, i32 0, i32 0], [3 x i32] zeroinitializer]
+@e = dso_local global [4 x [4 x i32]] zeroinitializer
+@d = dso_local global [5 x i32] zeroinitializer
+@a = dso_local global [3 x i32] [i32 1, i32 2, i32 0]
 @.str = private unnamed_addr constant [3 x i8] c"%d\00", align 1
 @.str.1 = private unnamed_addr constant [3 x i8] c"%c\00", align 1
 @.str.2 = private unnamed_addr constant [4 x i8] c"%d:\00", align 1
@@ -11,9 +15,22 @@ target triple = "x86_64-apple-macosx10.14.0"
 @.str.4 = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
 
 define dso_local i32 @main() {
-  %r1 = getelementptr [5 x i32], [5 x i32]* @a, i32 0, i32 0
+  %r1 = getelementptr [2 x [1 x i32]], [2 x [1 x i32]]* @c, i32 0, i32 1, i32 0
   %r2 = load i32, i32* %r1, align 4
-  ret i32 %r2
+  %r3 = getelementptr [2 x [3 x i32]], [2 x [3 x i32]]* @b, i32 0, i32 0, i32 0
+  %r4 = load i32, i32* %r3, align 4
+  %r5 = add i32 %r2, %r4
+  %r6 = getelementptr [2 x [1 x i32]], [2 x [1 x i32]]* @c, i32 0, i32 0, i32 0
+  %r7 = load i32, i32* %r6, align 4
+  %r8 = add i32 %r5, %r7
+  %r9 = getelementptr [3 x i32], [3 x i32]* @a, i32 0, i32 1
+  %r10 = load i32, i32* %r9, align 4
+  %r11 = add i32 %r8, %r10
+  %r12 = getelementptr [5 x i32], [5 x i32]* @d, i32 0, i32 4
+  %r13 = load i32, i32* %r12, align 4
+  %r14 = add i32 %r11, %r13
+  call void @putint(i32 %r14)
+  ret i32 0
 }
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable

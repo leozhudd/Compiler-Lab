@@ -1,6 +1,6 @@
-int a = 1;
-int b[2] = {1, a};
 int main() {
-    putint(b[1]);
-    return 0;
+    int a[5] = {};
+    int b;
+    b = 10;
+    return b;
 }

@@ -479,8 +479,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                 }
             }
             if(val == null) System.exit(-1);
-
-            if(ctx.lVal().exp() != null) { // 给数组赋值
+            if(ctx.lVal().exp().size() != 0) { // 给数组赋值
                 if(val.isConst || val.arrayDim.size() != ctx.lVal().exp().size()) System.exit(-1); // 如果是常量数组或维度不匹配
                 String elm_reg = "%r" + regId++;
                 System.out.print("    " + elm_reg + " = getelementptr ");

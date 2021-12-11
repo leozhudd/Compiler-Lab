@@ -4,6 +4,7 @@ target datalayout = "e-m:o-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16
 target triple = "x86_64-apple-macosx10.14.0"
 
 @a = dso_local global [10 x i32] zeroinitializer
+@b = dso_local constant [11 x i32] zeroinitializer
 @.str = private unnamed_addr constant [3 x i8] c"%d\00", align 1
 @.str.1 = private unnamed_addr constant [3 x i8] c"%c\00", align 1
 @.str.2 = private unnamed_addr constant [4 x i8] c"%d:\00", align 1
@@ -12,27 +13,38 @@ target triple = "x86_64-apple-macosx10.14.0"
 
 define dso_local i32 @main() {
   %r1 = getelementptr [10 x i32], [10 x i32]* @a, i32 0, i32 1
-  store i32 5, i32* %r1, align 4
-  %r2 = icmp sgt i32 2, 3
-  %r3 = zext i1 %r2 to i32
-  %r4 = icmp sge i32 %r3, 4
-  %r5 = zext i1 %r4 to i32
-  %r6 = getelementptr [10 x i32], [10 x i32]* @a, i32 0, i32 1
+  %r2 = load i32, i32* %r1, align 4
+  %r3 = icmp eq i32 %r2, 1
+  %r4 = zext i1 %r3 to i32
+  %r5 = icmp ne i32 %r4, 0
+  %r6 = getelementptr [10 x i32], [10 x i32]* @a, i32 0, i32 2
   %r7 = load i32, i32* %r6, align 4
-  %r8 = and i32 %r5, %r7
-  %r9 = icmp ne i32 %r8, 0
-  br i1 %r9, label %r10, label %r11
+  %r8 = icmp ne i32 %r7, 0
+  %r9 = and i1 %r5, %r8
+  %r10 = zext i1 %r9 to i32
+  %r11 = icmp ne i32 %r10, 0
+  %r12 = getelementptr [10 x i32], [10 x i32]* @a, i32 0, i32 3
+  %r13 = load i32, i32* %r12, align 4
+  %r14 = icmp ne i32 %r13, 0
+  %r15 = or i1 %r11, %r14
+  %r16 = zext i1 %r15 to i32
+  %r17 = icmp ne i32 %r16, 0
+  %r18 = icmp ne i32 410, 0
+  %r19 = or i1 %r17, %r18
+  %r20 = zext i1 %r19 to i32
+  %r21 = icmp ne i32 %r20, 0
+  br i1 %r21, label %r22, label %r23
 
-r10:                                              ; preds = %0
+r22:                                              ; preds = %0
   ret i32 1
 
 1:                                                ; No predecessors!
-  br label %r12
+  br label %r24
 
-r11:                                              ; preds = %0
-  br label %r12
+r23:                                              ; preds = %0
+  br label %r24
 
-r12:                                              ; preds = %r11, %1
+r24:                                              ; preds = %r23, %1
   ret i32 0
 }
 

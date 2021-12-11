@@ -830,24 +830,23 @@ public class Visitor extends SysYBaseVisitor<String> {
             return visit(ctx.eqExp());
         }
         else {
-//            String reg_a = visit(ctx.lAndExp());
-//            String reg_a_i1 = "%r" + regId++;
-//            System.out.println("    " + reg_a_i1 + " = icmp ne i32 " + reg_a + ", 0");
-//
-//            String reg_b = visit(ctx.eqExp());
-//            String reg_b_i1 = "%r" + regId++;
-//            System.out.println("    " + reg_b_i1 + " = icmp ne i32 " + reg_b + ", 0");
-//
-//            String reg = "%r" + regId++;
-//            System.out.println("    " + reg + " = and i1 " + reg_a_i1 + ", " + reg_b_i1);
-
+            // 把a和b从i32转换到i1，然后执行and，最后把结果转换回i32！
             String reg_a = visit(ctx.lAndExp());
+            String reg_a_i1 = "%r" + regId++;
+            System.out.println("    " + reg_a_i1 + " = icmp ne i32 " + reg_a + ", 0");
+
             String reg_b = visit(ctx.eqExp());
+            String reg_b_i1 = "%r" + regId++;
+            System.out.println("    " + reg_b_i1 + " = icmp ne i32 " + reg_b + ", 0");
+
             String reg = "%r" + regId++;
-            System.out.println("    " + reg + " = and i32 " + reg_a + ", " + reg_b);
+            System.out.println("    " + reg + " = and i1 " + reg_a_i1 + ", " + reg_b_i1);
+
+            String reg_i32 = "%r" + regId++;
+            System.out.println("    " + reg_i32 + " = zext i1 " + reg + " to i32");
 
             if_unary_flag = false;
-            return reg;
+            return reg_i32;
         }
     }
 // TODO: 条件表达式短路求值【挑战实验】
@@ -858,26 +857,23 @@ public class Visitor extends SysYBaseVisitor<String> {
             return visit(ctx.lAndExp());
         }
         else {
-//            String reg_a = visit(ctx.lOrExp());
-//            String reg_a_i1 = "%r" + regId++;
-//            System.out.println("    " + reg_a_i1 + " = icmp ne i32 " + reg_a + ", 0");
-//
-//            String reg_b = visit(ctx.lAndExp());
-//            String reg_b_i1 = "%r" + regId++;
-//            System.out.println("    " + reg_b_i1 + " = icmp ne i32 " + reg_b + ", 0");
-//
-//
-//            String reg = "%r" + regId++;
-//            System.out.println("    " + reg + " = or i1 " + reg_a_i1 + ", " + reg_b_i1);
-
-
+            // 把a和b从i32转换到i1，然后执行and，最后把结果转换回i32！
             String reg_a = visit(ctx.lOrExp());
+            String reg_a_i1 = "%r" + regId++;
+            System.out.println("    " + reg_a_i1 + " = icmp ne i32 " + reg_a + ", 0");
+
             String reg_b = visit(ctx.lAndExp());
+            String reg_b_i1 = "%r" + regId++;
+            System.out.println("    " + reg_b_i1 + " = icmp ne i32 " + reg_b + ", 0");
+
             String reg = "%r" + regId++;
-            System.out.println("    " + reg + " = or i32 " + reg_a + ", " + reg_b);
+            System.out.println("    " + reg + " = or i1 " + reg_a_i1 + ", " + reg_b_i1);
+
+            String reg_i32 = "%r" + regId++;
+            System.out.println("    " + reg_i32 + " = zext i1 " + reg + " to i32");
 
             if_unary_flag = false;
-            return reg;
+            return reg_i32;
         }
     }
 

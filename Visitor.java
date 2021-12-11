@@ -1,5 +1,6 @@
 import org.antlr.v4.runtime.misc.Pair;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -9,6 +10,7 @@ public class Visitor extends SysYBaseVisitor<String> {
     private Stack<Pair<String,String>>loopLabels = new Stack<>(); // <条件判断label,退出label>
     private int regId = 1; // 从1开始
     private boolean globalFlag = true; // 指示全局变量定义
+    private boolean arrayFlag = false; // 指示数组声明
 
     // compUnit: decl* funcDef;
     @Override
@@ -27,30 +29,210 @@ public class Visitor extends SysYBaseVisitor<String> {
         return visit(ctx.funcDef());
     }
 
-    // constDef: Ident '=' constInitVal;
+    // constDef: Ident ('[' constExp ']' )* '=' constInitVal
+    // TODO: 全局数组的 ConstInitVal/InitVal 中的 ConstExp/Exp 必须是编译时可求值的常量表达式。
+    // TODO: 局部常量数组的 ConstInitVal 中的 ConstExp 必须是编译时可求值的表达式。
+    String nowInitArray = "";
     @Override
     public String visitConstDef(SysYParser.ConstDefContext ctx) {
         String name = ctx.Ident().getText();
         /*
-        判断全局变量
-        TODO: 全局变/常量声明中指定的初值表达式必须是常量表达式；并且需要折叠成一个数字。
+        需要判断全局变量，特殊处理
         */
         Map<String,Variable> assignMap = assignStack.peek(); // 取出符号表
         if(assignMap.containsKey(name)) { // 如果符号表中已经有这个名字，报错退出
             System.exit(2);
         }
-        String value = visit(ctx.constInitVal());
-        if(!globalFlag) { // 局部变量，需要alloca
-            String ptr_reg = "%r" + regId++;
-            System.out.println("    " + ptr_reg + " = alloca i32");
-            System.out.println("    store i32 " + value + ", i32* " + ptr_reg);
-            assignMap.put(name, new Variable(name, ptr_reg, true, true));
+        int dimension = ctx.constExp().size(); // 维度（0为常量，大于0为常量数组）
+
+        if(dimension == 0) { // 如果是常量声明（不是数组）
+            String value = visit(ctx.constInitVal());
+            if(!globalFlag) { // 局部变量，需要alloca
+                String ptr_reg = "%r" + regId++;
+                System.out.println("    " + ptr_reg + " = alloca i32");
+                System.out.println("    store i32 " + value + ", i32* " + ptr_reg);
+                assignMap.put(name, new Variable(name, ptr_reg, true, true));
+            }
+            else { // 全局变量，不需要alloca
+                System.out.println("@" + name + " = dso_local global i32 " + value);
+                assignMap.put(name, new Variable(name, "@" + name, true, true, Integer.parseInt(value)));
+            }
         }
-        else { // 全局变量，不需要alloca
-            System.out.println("@" + name + " = dso_local global i32 " + value);
-            assignMap.put(name, new Variable(name, "@" + name, true, true, Integer.parseInt(value)));
+        else { // TODO: 数组声明
+            nowInitArray = name;
+            ArrayList<Integer>arrayDim = new ArrayList<>(); // 保存数组每一维度的长度
+            if(!globalFlag) {
+                // 局部数组
+                String reg = "%r" + regId++;
+                System.out.print("    " + reg + " = alloca ");
+                globalFlag = true; // 只要globalFlag=true，就会只能访问【常量表达式】
+
+                // 遍历每个维度的长度，例如a[4][5]的[4]和[5]
+                StringBuilder arrayType = new StringBuilder();
+                for(SysYParser.ConstExpContext e: ctx.constExp()) {
+                    String len = visit(e); // TODO: 数组的各维长度必须是编译时可求值的【非负】【常量表达式】。
+                    if(len.startsWith("-")) {
+                        System.exit(-1);
+                    }
+                    arrayDim.add(Integer.parseInt(len));
+                    arrayType.append("[").append(len).append(" x ");
+                    // System.out.print("[" + len + " x ");
+                    // 例如：System.out.println("%1 = alloca [2 x [2 x i32]]");
+                }
+                arrayType.append("i32");
+                // System.out.print("i32");
+                for(int i=0;i<dimension;i++) {
+                    arrayType.append("]");
+                    // System.out.print("]");
+                }
+                System.out.println(arrayType);
+                globalFlag = false; // 还原flag
+                assignMap.put(name, new Variable(name, reg, true, arrayDim, arrayType.toString()));
+
+                // memset需要使用i32*指针，这里转换一下
+                String memset_reg = "%r_for_memset" + regId++;
+                System.out.print("    " + memset_reg + " = getelementptr " + arrayType + ", " + arrayType + "* " + reg);
+                for(int i=0;i<=arrayDim.size();i++) {
+                    System.out.print(", i32 0");
+                }
+                System.out.println();
+                int size = 4;
+                for (Integer i : arrayDim) {
+                    size *= i;
+                }
+                System.out.println("    call void @memset(i32* " + memset_reg + ", i32 0, i32 " + size + ")");
+
+                arrayFlag = true;
+                visit(ctx.constInitVal());
+                arrayFlag = false;
+            }
+            else {
+                // 全局数组（不需要memset，声明时直接赋值）
+                String reg = "@" + name;
+                System.out.print(reg + " = dso_local constant ");
+
+                StringBuilder arrayType = new StringBuilder();
+                for(SysYParser.ConstExpContext e: ctx.constExp()) {
+                    String len = visit(e); // TODO: 数组的各维长度必须是编译时可求值的【非负】【常量表达式】。
+                    if(len.startsWith("-")) {
+                        System.exit(-1);
+                    }
+                    arrayDim.add(Integer.parseInt(len));
+                    arrayType.append("[").append(len).append(" x ");
+                }
+                arrayType.append("i32");
+                for(int i=0;i<dimension;i++) {
+                    arrayType.append("]");
+                }
+                // System.out.print(arrayType);
+                assignMap.put(name, new Variable(name, reg, true, arrayDim, arrayType.toString()));
+
+                arrayFlag = true;
+                globalArrayInitVals.clear();
+                visit(ctx.constInitVal());
+                arrayFlag = false;
+
+                construct(arrayDim, arrayType.toString(), 0, 0);
+                System.out.println();
+                // 把获得的初始化值格式化输出【globalArrayInitVals】
+            }
         }
         return null;
+    }
+
+    private void construct(ArrayList<Integer> arrayDim, String type, int nowDim, int totalIndex) {
+        /**
+         * 递归构建任意多维全局数组定义表达式（等号右边的部分）
+         * 1维数组：[3 x i32] [i32 1, i32 2, i32 3]
+         * 2维数组：[2 x [2 x i32]] [[2 x i32] [i32 1, i32 2], [2 x i32] [i32 3, i32 0]]
+         */
+        if(nowDim == arrayDim.size()) { // 已经是最后一维了，输出"i32 num"
+            // System.out.print(" <i32 " + totalIndex + "> ");
+            // 此时的totalIndex是这个元素在数组中的位置唯一编号
+            if (globalArrayInitVals.containsKey(totalIndex)) {
+                System.out.print("i32 " + globalArrayInitVals.get(totalIndex));
+            }
+            else {
+                System.out.print("i32 0"); // 没有提供初始值，默认为0
+            }
+        }
+        else {
+            String nextType = type.substring(5, type.length() - 1);
+            System.out.print(type + " [");
+            for (int i = 0; i < arrayDim.get(nowDim); i++) {
+                construct(arrayDim, nextType, nowDim + 1, totalIndex * arrayDim.get(nowDim) + i);
+                if (i != arrayDim.get(nowDim) - 1) {
+                    System.out.print(", ");
+                }
+            }
+            System.out.print("]");
+        }
+    }
+
+    // constInitVal: constExp
+    //    | '{' (constInitVal (',' constInitVal)*)? '}' // 支持数组
+    Stack<Integer>dimIndex = new Stack<>(); // 当前元素在数组中的index
+    HashMap<Integer, String> globalArrayInitVals = new HashMap<>();
+    @Override
+    public String visitConstInitVal(SysYParser.ConstInitValContext ctx) {
+        if(!arrayFlag) { // 普通常量的初始值
+            return visit(ctx.constExp());
+        }
+        else if(!globalFlag){ // 局部数组的初始值
+            Variable array = assignStack.peek().get(nowInitArray);
+            if(ctx.constExp() != null) { // constExp
+                String value_reg = visit(ctx.constExp());
+                String ret_reg = "%r" + regId++;
+                System.out.print("    " + ret_reg + " = getelementptr ");
+                System.out.print(array.arrayType + ", ");
+                System.out.print(array.arrayType + "* " + array.reg + ", i32 0");
+                for (Integer idx : dimIndex) {
+                    System.out.print(", i32 " + idx);
+                }
+                System.out.println();
+                System.out.println("    store i32 " + value_reg + ", i32* " + ret_reg);
+                // %1 = getelementptr [5 x [4 x i32]], [5 x [4 x i32]]* @a, i32 0, i32 2, i32 3
+            }
+            else { // {constInitVal, constInitVal, ...}
+                for(int i=0;i<ctx.constInitVal().size();i++) { // 遍历下一维度
+                    SysYParser.ConstInitValContext e = ctx.constInitVal(i);
+                    dimIndex.push(i);
+                    if(dimIndex.size() > array.arrayDim.size()) {
+                        // 初始值的维度超过了数组声明的维度
+                        System.exit(-1);
+                    }
+                    visit(e);
+                    dimIndex.pop();
+                }
+            }
+            return null;
+        }
+        else { //TODO: 全局数组的初始值
+            // 初值必须是常量表达式
+            Variable array = assignStack.peek().get(nowInitArray);
+            if(ctx.constExp() != null) { // constExp
+                String value = visit(ctx.constExp());
+                int totalIndex = 0;
+                for(int i=0;i<dimIndex.size();i++) { // [2,3] [1,2] 1 4(543 210)
+                    totalIndex = totalIndex * array.arrayDim.get(i) + dimIndex.get(i);
+                }
+                globalArrayInitVals.put(totalIndex, value); // 把初始化的每个元素的值放进list，备用
+            }
+            else { // {constInitVal, constInitVal, ...}
+                for(int i=0;i<ctx.constInitVal().size();i++) { // 遍历下一维度
+                    SysYParser.ConstInitValContext e = ctx.constInitVal(i);
+                    dimIndex.push(i);
+                    if(dimIndex.size() > array.arrayDim.size()) {
+                        // 初始值的维度超过了数组声明的维度
+                        System.exit(-1);
+                    }
+                    visit(e);
+                    dimIndex.pop();
+                }
+            }
+            return null;
+
+        }
     }
 
     // varDef: Ident | Ident '=' initVal;
@@ -61,28 +243,181 @@ public class Visitor extends SysYBaseVisitor<String> {
         if(assignMap.containsKey(name)) { // 如果符号表中已经有这个名字，报错退出
             System.exit(3);
         }
-        if(!globalFlag) { // 局部变量，需要alloca
-            String ptr_reg = "%r" + regId++;
-            System.out.println("    " + ptr_reg + " = alloca i32");
-            if (ctx.initVal() != null) { // 有指定初值
-                String value = visit(ctx.initVal());
-                System.out.println("    store i32 " + value + ", i32* " + ptr_reg);
-                assignMap.put(name, new Variable(name, ptr_reg, false, true));
-            } else { // 没有指定初值
-                assignMap.put(name, new Variable(name, ptr_reg, false, false));
+        int dimension = ctx.constExp().size(); // 维度
+
+        if(dimension == 0) { // 如果是常量声明（不是数组）
+            if (!globalFlag) { // 局部变量，需要alloca
+                String ptr_reg = "%r" + regId++;
+                System.out.println("    " + ptr_reg + " = alloca i32");
+                if (ctx.initVal() != null) { // 有指定初值
+                    String value = visit(ctx.initVal());
+                    System.out.println("    store i32 " + value + ", i32* " + ptr_reg);
+                    assignMap.put(name, new Variable(name, ptr_reg, false, true));
+                } else { // 没有指定初值
+                    assignMap.put(name, new Variable(name, ptr_reg, false, false));
+                }
+            } else { // 全局变量，不需要alloca
+                String initVal = (ctx.initVal() != null) ? visit(ctx.initVal()) : "0"; // 根据有没有给初始值，没给的话赋值为0
+                System.out.println("@" + name + " = dso_local global i32 " + initVal);
+                assignMap.put(name, new Variable(name, "@" + name, false, true, Integer.parseInt(initVal)));
             }
         }
-        else { // 全局变量，不需要alloca
-            String initVal = (ctx.initVal() != null) ? visit(ctx.initVal()) : "0"; // 根据有没有给初始值，没给的话赋值为0
-            System.out.println("@" + name + " = dso_local global i32 " + initVal);
-            assignMap.put(name, new Variable(name, "@" + name, false, true, Integer.parseInt(initVal)));
+        else { // 数组声明
+            nowInitArray = name;
+            ArrayList<Integer>arrayDim = new ArrayList<>(); // 保存数组每一维度的长度
+            if(!globalFlag) {
+                // 局部数组
+                String reg = "%r" + regId++;
+                System.out.print("    " + reg + " = alloca ");
+                globalFlag = true; // 只要globalFlag=true，就会只能访问【常量表达式】
+
+                // 遍历每个维度的长度，例如a[4][5]的[4]和[5]
+                StringBuilder arrayType = new StringBuilder();
+                for(SysYParser.ConstExpContext e: ctx.constExp()) {
+                    String len = visit(e); // TODO: 数组的各维长度必须是编译时可求值的【非负】【常量表达式】。
+                    if(len.startsWith("-")) {
+                        System.exit(-1);
+                    }
+                    arrayDim.add(Integer.parseInt(len));
+                    arrayType.append("[").append(len).append(" x ");
+                    // System.out.print("[" + len + " x ");
+                    // 例如：System.out.println("%1 = alloca [2 x [2 x i32]]");
+                }
+                arrayType.append("i32");
+                // System.out.print("i32");
+                for(int i=0;i<dimension;i++) {
+                    arrayType.append("]");
+                    // System.out.print("]");
+                }
+                System.out.println(arrayType);
+                globalFlag = false; // 还原flag
+                assignMap.put(name, new Variable(name, reg, false, arrayDim, arrayType.toString()));
+
+                // memset需要使用i32*指针，这里转换一下
+                String memset_reg = "%r_for_memset" + regId++;
+                System.out.print("    " + memset_reg + " = getelementptr " + arrayType + ", " + arrayType + "* " + reg);
+                for(int i=0;i<=arrayDim.size();i++) {
+                    System.out.print(", i32 0");
+                }
+                System.out.println();
+                int size = 4;
+                for (Integer i : arrayDim) {
+                    size *= i;
+                }
+                System.out.println("    call void @memset(i32* " + memset_reg + ", i32 0, i32 " + size + ")");
+
+                if (ctx.initVal() == null) { // 没有指定初值
+                    return null;
+                }
+
+                arrayFlag = true;
+                visit(ctx.initVal());
+                arrayFlag = false;
+            }
+            else {
+                // 全局数组（不需要memset，声明时直接赋值）
+                String reg = "@" + name;
+                System.out.print(reg + " = dso_local global ");
+
+                StringBuilder arrayType = new StringBuilder();
+                for(SysYParser.ConstExpContext e: ctx.constExp()) {
+                    String len = visit(e); // TODO: 数组的各维长度必须是编译时可求值的【非负】【常量表达式】。
+                    if(len.startsWith("-")) {
+                        System.exit(-1);
+                    }
+                    arrayDim.add(Integer.parseInt(len));
+                    arrayType.append("[").append(len).append(" x ");
+                }
+                arrayType.append("i32");
+                for(int i=0;i<dimension;i++) {
+                    arrayType.append("]");
+                }
+                // System.out.print(arrayType);
+                assignMap.put(name, new Variable(name, reg, false, arrayDim, arrayType.toString()));
+
+                if (ctx.initVal() == null) { // 没有指定初值
+                    System.out.println(arrayType + " zeroinitializer");
+                    return null;
+                }
+                arrayFlag = true;
+                globalArrayInitVals.clear();
+                visit(ctx.initVal());
+                arrayFlag = false;
+
+                construct(arrayDim, arrayType.toString(), 0, 0);
+                System.out.println();
+                // 把获得的初始化值格式化输出【globalArrayInitVals】
+            }
         }
+
         return null;
+    }
+
+    @Override
+    public String visitInitVal(SysYParser.InitValContext ctx) {
+        if(!arrayFlag) { // 普通常量的初始值
+            return visit(ctx.exp());
+        }
+        else if(!globalFlag){ // 局部数组的初始值
+            Variable array = assignStack.peek().get(nowInitArray);
+            if(ctx.exp() != null) { // exp
+                String value_reg = visit(ctx.exp());
+                String ret_reg = "%r" + regId++;
+                System.out.print("    " + ret_reg + " = getelementptr ");
+                System.out.print(array.arrayType + ", ");
+                System.out.print(array.arrayType + "* " + array.reg + ", i32 0");
+                for (Integer idx : dimIndex) {
+                    System.out.print(", i32 " + idx);
+                }
+                System.out.println();
+                System.out.println("    store i32 " + value_reg + ", i32* " + ret_reg);
+                // %1 = getelementptr [5 x [4 x i32]], [5 x [4 x i32]]* @a, i32 0, i32 2, i32 3
+            }
+            else { // {constInitVal, constInitVal, ...}
+                for(int i=0;i<ctx.initVal().size();i++) { // 遍历下一维度
+                    SysYParser.InitValContext e = ctx.initVal(i);
+                    dimIndex.push(i);
+                    if(dimIndex.size() > array.arrayDim.size()) {
+                        // 初始值的维度超过了数组声明的维度
+                        System.exit(-1);
+                    }
+                    visit(e);
+                    dimIndex.pop();
+                }
+            }
+            return null;
+        }
+        else { //TODO: 全局数组的初始值
+            // 初值必须是常量表达式
+            Variable array = assignStack.peek().get(nowInitArray);
+            if(ctx.exp() != null) { // constExp
+                String value = visit(ctx.exp());
+                int totalIndex = 0;
+                for(int i=0;i<dimIndex.size();i++) { // [2,3] [1,2] 1 4(543 210)
+                    totalIndex = totalIndex * array.arrayDim.get(i) + dimIndex.get(i);
+                }
+                globalArrayInitVals.put(totalIndex, value); // 把初始化的每个元素的值放进list，备用
+            }
+            else { // {constInitVal, constInitVal, ...}
+                for(int i=0;i<ctx.initVal().size();i++) { // 遍历下一维度
+                    SysYParser.InitValContext e = ctx.initVal(i);
+                    dimIndex.push(i);
+                    if(dimIndex.size() > array.arrayDim.size()) {
+                        // 初始值的维度超过了数组声明的维度
+                        System.exit(-1);
+                    }
+                    visit(e);
+                    dimIndex.pop();
+                }
+            }
+            return null;
+        }
     }
 
     // funcDef: funcType Ident '(' ')' block;
     @Override
     public String visitFuncDef(SysYParser.FuncDefContext ctx) {
+        System.out.println("declare void @memset(i32*, i32, i32)");
         System.out.println("declare i32 @getint()");
         System.out.println("declare void @putint(i32)");
         System.out.println("declare i32 @getch()");
@@ -133,7 +468,7 @@ public class Visitor extends SysYBaseVisitor<String> {
             System.out.println("    ret i32 " + visit(ctx.exp()));
         }
         else if(ctx.lVal() != null) { // Assign
-            String name = ctx.lVal().getText();
+            String name = ctx.lVal().Ident().getText();
             Variable val = null;
             // 遍历符号表栈，找到最内层的变量并取出
             for(int i=assignStack.size()-1;i>=0;i--) {
@@ -143,7 +478,22 @@ public class Visitor extends SysYBaseVisitor<String> {
                     break;
                 }
             }
-            if(val != null && !val.isConst) {
+            if(val == null) System.exit(-1);
+
+            if(ctx.lVal().exp() != null) { // 给数组赋值
+                if(val.isConst || val.arrayDim.size() != ctx.lVal().exp().size()) System.exit(-1); // 如果是常量数组或维度不匹配
+                String elm_reg = "%r" + regId++;
+                System.out.print("    " + elm_reg + " = getelementptr ");
+                System.out.print(val.arrayType + ", ");
+                System.out.print(val.arrayType + "* " + val.reg + ", i32 0");
+                for(SysYParser.ExpContext e: ctx.lVal().exp()) {
+                    System.out.print(", i32 " + visit(e));
+                }
+                System.out.println();
+                String source_reg = visit(ctx.exp());
+                System.out.println("    store i32 " + source_reg + ", i32* " + elm_reg);
+            }
+            else if(!val.isConst) {
                 val.valInit = true;
                 String source_reg = visit(ctx.exp());
                 System.out.println("    store i32 " + source_reg + ", i32* " + val.reg);
@@ -220,7 +570,24 @@ public class Visitor extends SysYBaseVisitor<String> {
                 break;
             }
         }
-        if(val != null && val.valInit) {
+        if(val == null) System.exit(-1);
+        if(ctx.exp() != null) { // 如果是数组
+            // System.out.printf("声明%d, 调用%d", val.arrayDim.size(), ctx.exp().size());
+            if(val.arrayDim.size() != ctx.exp().size()) System.exit(-1); // 如果维度不匹配
+
+            String elm_reg = "%r" + regId++;
+            System.out.print("    " + elm_reg + " = getelementptr ");
+            System.out.print(val.arrayType + ", ");
+            System.out.print(val.arrayType + "* " + val.reg + ", i32 0");
+            for(SysYParser.ExpContext e: ctx.exp()) {
+                System.out.print(", i32 " + visit(e));
+            }
+            System.out.println();
+            String target_reg = "%r" + regId++;
+            System.out.println("    " + target_reg + " = load i32, i32* " + elm_reg);
+            return target_reg;
+        }
+        else if(val.valInit) {
             if(!globalFlag) {
                 String target_reg = "%r" + regId++;
                 System.out.println("    " + target_reg + " = load i32, i32* " + val.reg);
@@ -230,10 +597,13 @@ public class Visitor extends SysYBaseVisitor<String> {
                 if(val.isConst) {
                     return String.valueOf(val.value);
                 }
-                else { // 如果调取的是变量的值，报错退出！！！
+                else {
+                    /*
+                     全局变/常量声明中指定的初值表达式必须是常量表达式；
+                     如果调取了变量的值，报错退出！！！
+                    */
                     System.exit(-1);
                 }
-
             }
         }
         else System.exit(5);
@@ -499,6 +869,8 @@ class Variable {
     boolean isConst;
     boolean valInit;
     int value;
+    ArrayList<Integer>arrayDim;
+    String arrayType;
 
     public Variable(String name, String reg, boolean isConst, boolean valInit) {
         this.name = name;
@@ -513,6 +885,14 @@ class Variable {
         this.isConst = isConst;
         this.valInit = valInit;
         this.value = value;
+    }
+
+    public Variable(String name, String reg, boolean isConst, ArrayList<Integer>arrayDim, String arrayType) {
+        this.name = name;
+        this.reg = reg;
+        this.isConst = isConst;
+        this.arrayDim = arrayDim;
+        this.arrayType = arrayType;
     }
 
 }

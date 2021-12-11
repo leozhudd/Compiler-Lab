@@ -40,8 +40,12 @@ constInitVal: constExp
 ;
 constExp: addExp;
 varDecl: bType varDef (',' varDef)* ';';
-varDef: Ident | Ident '=' initVal;
-initVal: exp;
+varDef: Ident ('[' constExp ']')* '=' initVal // 支持数组
+      | Ident ('[' constExp ']')* // 支持数组
+;
+initVal: exp
+    | '{' (initVal (',' initVal)*)? '}' // 支持数组
+;
 
 funcDef: funcType Ident '(' ')' block;
 funcType: INT;
@@ -56,7 +60,7 @@ stmt: lVal '=' exp ';'      // assign
     | BREAK ';' // break
     | CONTINUE ';' // continue
 ;
-lVal: Ident;
+lVal: Ident ('[' exp ']')*; // 支持数组
 
 exp: addExp;
 cond: lOrExp;

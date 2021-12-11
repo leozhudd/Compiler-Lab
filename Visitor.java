@@ -476,7 +476,7 @@ public class Visitor extends SysYBaseVisitor<String> {
             if(val == null) System.exit(-1);
             if(ctx.lVal().exp().size() != 0) { // 给数组赋值
                 if(val.isConst || val.arrayDim.size() != ctx.lVal().exp().size()) System.exit(-1); // 如果是常量数组或维度不匹配
-                
+
                 // getelemenptr之前先把所有exp算出来
                 ArrayList<String>expResults = new ArrayList<>();
                 for(SysYParser.ExpContext e: ctx.lVal().exp()) {
@@ -576,10 +576,9 @@ public class Visitor extends SysYBaseVisitor<String> {
         if(ctx.exp().size() != 0) { // 如果是数组
             if(val.arrayDim.size() != ctx.exp().size()) System.exit(-1); // 如果维度不匹配
 
-            // getelemenptr之前先把所有exp算出来
+            // getelemenptr之前先把所有exp算出来，否则add等指令会夹杂在getelem中间，导致出错
             ArrayList<String>expResults = new ArrayList<>();
             for(SysYParser.ExpContext e: ctx.exp()) {
-                // TODO: error: expected metadata after comma[, i32 %r30    %r31 = load i32, i32* %r10]
                 expResults.add(visit(e));
             }
 
@@ -821,9 +820,15 @@ public class Visitor extends SysYBaseVisitor<String> {
         }
         else {
             String reg_a = visit(ctx.lAndExp());
+            String reg_a_i1 = "%r" + regId++;
+            System.out.println("    " + reg_a_i1 + " = icmp ne i32 " + reg_a + ", 0");
+
             String reg_b = visit(ctx.eqExp());
+            String reg_b_i1 = "%r" + regId++;
+            System.out.println("    " + reg_b_i1 + " = icmp ne i32 " + reg_b + ", 0");
+
             String reg = "%r" + regId++;
-            System.out.println("    " + reg + " = and i1 " + reg_a + ", " + reg_b);
+            System.out.println("    " + reg + " = and i1 " + reg_a_i1 + ", " + reg_b_i1);
             if_unary_flag = false;
             return reg;
         }
@@ -837,9 +842,16 @@ public class Visitor extends SysYBaseVisitor<String> {
         }
         else {
             String reg_a = visit(ctx.lOrExp());
+            String reg_a_i1 = "%r" + regId++;
+            System.out.println("    " + reg_a_i1 + " = icmp ne i32 " + reg_a + ", 0");
+
             String reg_b = visit(ctx.lAndExp());
+            String reg_b_i1 = "%r" + regId++;
+            System.out.println("    " + reg_b_i1 + " = icmp ne i32 " + reg_b + ", 0");
+
+
             String reg = "%r" + regId++;
-            System.out.println("    " + reg + " = or i1 " + reg_a + ", " + reg_b);
+            System.out.println("    " + reg + " = or i1 " + reg_a_i1 + ", " + reg_b_i1);
             if_unary_flag = false;
             return reg;
         }

@@ -3,6 +3,7 @@ source_filename = "llvm-link"
 target datalayout = "e-m:o-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-apple-macosx10.14.0"
 
+@a = dso_local global [10 x i32] zeroinitializer
 @.str = private unnamed_addr constant [3 x i8] c"%d\00", align 1
 @.str.1 = private unnamed_addr constant [3 x i8] c"%c\00", align 1
 @.str.2 = private unnamed_addr constant [4 x i8] c"%d:\00", align 1
@@ -10,15 +11,27 @@ target triple = "x86_64-apple-macosx10.14.0"
 @.str.4 = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
 
 define dso_local i32 @main() {
-  %r1 = alloca [5 x i32], align 4
-  %r_for_memset2 = getelementptr [5 x i32], [5 x i32]* %r1, i32 0, i32 0
-  call void @memset(i32* %r_for_memset2, i32 0, i32 20)
-  %r3 = getelementptr [5 x i32], [5 x i32]* %r1, i32 0, i32 1
-  %r4 = load i32, i32* %r3, align 4
-  ret i32 %r4
-}
+  %r1 = getelementptr [10 x i32], [10 x i32]* @a, i32 0, i32 1
+  store i32 5, i32* %r1, align 4
+  %r2 = getelementptr [10 x i32], [10 x i32]* @a, i32 0, i32 1
+  %r3 = load i32, i32* %r2, align 4
+  %r4 = icmp ne i32 %r3, 0
+  %r5 = icmp ne i32 1, 0
+  %r6 = and i1 %r4, %r5
+  br i1 %r6, label %r7, label %r8
 
-declare void @memset(i32*, i32, i32)
+r7:                                               ; preds = %0
+  ret i32 1
+
+1:                                                ; No predecessors!
+  br label %r9
+
+r8:                                               ; preds = %0
+  br label %r9
+
+r9:                                               ; preds = %r8, %1
+  ret i32 0
+}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable
 define dso_local i32 @getint() #0 {

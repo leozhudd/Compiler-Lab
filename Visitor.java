@@ -764,6 +764,9 @@ public class Visitor extends SysYBaseVisitor<String> {
     @Override
     public String visitRelExp(SysYParser.RelExpContext ctx) {
         if(ctx.relExp() == null) {
+//            String reg_i1 = "%r" + regId++;
+//            System.out.println("    " + reg_i1 + " = icmp ne i32 " + ctx.addExp() + ", 0");
+//            return reg_i1;
             return visit(ctx.addExp());
         }
         else {
@@ -771,22 +774,27 @@ public class Visitor extends SysYBaseVisitor<String> {
             String reg_b = visit(ctx.addExp());
             String op = ctx.op.getText();
             String reg = "%r" + regId++;
+            String reg_i32 = "%r" + regId++;
             switch (op) {
                 case "<=":
                     System.out.println("    " + reg + " = icmp sle i32 " + reg_a + ", " + reg_b);
+                    System.out.println("    " + reg_i32 + " = zext i1 " + reg + " to i32");
                     break;
                 case ">=":
                     System.out.println("    " + reg + " = icmp sge i32 " + reg_a + ", " + reg_b);
+                    System.out.println("    " + reg_i32 + " = zext i1 " + reg + " to i32");
                     break;
                 case ">":
                     System.out.println("    " + reg + " = icmp sgt i32 " + reg_a + ", " + reg_b);
+                    System.out.println("    " + reg_i32 + " = zext i1 " + reg + " to i32");
                     break;
                 case "<":
                     System.out.println("    " + reg + " = icmp slt i32 " + reg_a + ", " + reg_b);
+                    System.out.println("    " + reg_i32 + " = zext i1 " + reg + " to i32");
                     break;
             }
             if_unary_flag = false;
-            return reg;
+            return reg_i32;
         }
     }
 
@@ -800,16 +808,19 @@ public class Visitor extends SysYBaseVisitor<String> {
             String reg_b = visit(ctx.relExp());
             String op = ctx.op.getText();
             String reg = "%r" + regId++;
+            String reg_i32 = "%r" + regId++;
             switch (op) {
                 case "==":
                     System.out.println("    " + reg + " = icmp eq i32 " + reg_a + ", " + reg_b);
+                    System.out.println("    " + reg_i32 + " = zext i1 " + reg + " to i32");
                     break;
                 case "!=":
                     System.out.println("    " + reg + " = icmp ne i32 " + reg_a + ", " + reg_b);
+                    System.out.println("    " + reg_i32 + " = zext i1 " + reg + " to i32");
                     break;
             }
             if_unary_flag = false;
-            return reg;
+            return reg_i32;
         }
     }
 
@@ -819,16 +830,22 @@ public class Visitor extends SysYBaseVisitor<String> {
             return visit(ctx.eqExp());
         }
         else {
+//            String reg_a = visit(ctx.lAndExp());
+//            String reg_a_i1 = "%r" + regId++;
+//            System.out.println("    " + reg_a_i1 + " = icmp ne i32 " + reg_a + ", 0");
+//
+//            String reg_b = visit(ctx.eqExp());
+//            String reg_b_i1 = "%r" + regId++;
+//            System.out.println("    " + reg_b_i1 + " = icmp ne i32 " + reg_b + ", 0");
+//
+//            String reg = "%r" + regId++;
+//            System.out.println("    " + reg + " = and i1 " + reg_a_i1 + ", " + reg_b_i1);
+
             String reg_a = visit(ctx.lAndExp());
-            String reg_a_i1 = "%r" + regId++;
-            System.out.println("    " + reg_a_i1 + " = icmp ne i32 " + reg_a + ", 0");
-
             String reg_b = visit(ctx.eqExp());
-            String reg_b_i1 = "%r" + regId++;
-            System.out.println("    " + reg_b_i1 + " = icmp ne i32 " + reg_b + ", 0");
-
             String reg = "%r" + regId++;
-            System.out.println("    " + reg + " = and i1 " + reg_a_i1 + ", " + reg_b_i1);
+            System.out.println("    " + reg + " = and i32 " + reg_a + ", " + reg_b);
+
             if_unary_flag = false;
             return reg;
         }
@@ -841,17 +858,24 @@ public class Visitor extends SysYBaseVisitor<String> {
             return visit(ctx.lAndExp());
         }
         else {
+//            String reg_a = visit(ctx.lOrExp());
+//            String reg_a_i1 = "%r" + regId++;
+//            System.out.println("    " + reg_a_i1 + " = icmp ne i32 " + reg_a + ", 0");
+//
+//            String reg_b = visit(ctx.lAndExp());
+//            String reg_b_i1 = "%r" + regId++;
+//            System.out.println("    " + reg_b_i1 + " = icmp ne i32 " + reg_b + ", 0");
+//
+//
+//            String reg = "%r" + regId++;
+//            System.out.println("    " + reg + " = or i1 " + reg_a_i1 + ", " + reg_b_i1);
+
+
             String reg_a = visit(ctx.lOrExp());
-            String reg_a_i1 = "%r" + regId++;
-            System.out.println("    " + reg_a_i1 + " = icmp ne i32 " + reg_a + ", 0");
-
             String reg_b = visit(ctx.lAndExp());
-            String reg_b_i1 = "%r" + regId++;
-            System.out.println("    " + reg_b_i1 + " = icmp ne i32 " + reg_b + ", 0");
-
-
             String reg = "%r" + regId++;
-            System.out.println("    " + reg + " = or i1 " + reg_a_i1 + ", " + reg_b_i1);
+            System.out.println("    " + reg + " = or i32 " + reg_a + ", " + reg_b);
+
             if_unary_flag = false;
             return reg;
         }
@@ -868,7 +892,11 @@ public class Visitor extends SysYBaseVisitor<String> {
             System.out.println("    " + reg + " = icmp ne i32 " + src_reg + ", 0");
             return reg;
         }
-        else return src_reg;
+        else {
+            String reg_i1 = "%r" + regId++;
+            System.out.println("    " + reg_i1 + " = icmp ne i32 " + src_reg + ", 0");
+            return reg_i1;
+        }
     }
 
     public static String hex2dec(String hex) {

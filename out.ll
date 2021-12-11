@@ -13,23 +13,26 @@ target triple = "x86_64-apple-macosx10.14.0"
 define dso_local i32 @main() {
   %r1 = getelementptr [10 x i32], [10 x i32]* @a, i32 0, i32 1
   store i32 5, i32* %r1, align 4
-  %r2 = getelementptr [10 x i32], [10 x i32]* @a, i32 0, i32 1
-  %r3 = load i32, i32* %r2, align 4
-  %r4 = icmp ne i32 %r3, 0
-  %r5 = icmp ne i32 1, 0
-  %r6 = and i1 %r4, %r5
-  br i1 %r6, label %r7, label %r8
+  %r2 = icmp sgt i32 2, 3
+  %r3 = zext i1 %r2 to i32
+  %r4 = icmp sge i32 %r3, 4
+  %r5 = zext i1 %r4 to i32
+  %r6 = getelementptr [10 x i32], [10 x i32]* @a, i32 0, i32 1
+  %r7 = load i32, i32* %r6, align 4
+  %r8 = and i32 %r5, %r7
+  %r9 = icmp ne i32 %r8, 0
+  br i1 %r9, label %r10, label %r11
 
-r7:                                               ; preds = %0
+r10:                                              ; preds = %0
   ret i32 1
 
 1:                                                ; No predecessors!
-  br label %r9
+  br label %r12
 
-r8:                                               ; preds = %0
-  br label %r9
+r11:                                              ; preds = %0
+  br label %r12
 
-r9:                                               ; preds = %r8, %1
+r12:                                              ; preds = %r11, %1
   ret i32 0
 }
 

@@ -480,7 +480,6 @@ public class Visitor extends SysYBaseVisitor<String> {
                 // getelemenptr之前先把所有exp算出来
                 ArrayList<String>expResults = new ArrayList<>();
                 for(SysYParser.ExpContext e: ctx.lVal().exp()) {
-                    // TODO: error: expected metadata after comma[, i32 %r30    %r31 = load i32, i32* %r10]
                     expResults.add(visit(e));
                 }
 
@@ -939,5 +938,4 @@ class Variable {
         this.arrayDim = arrayDim;
         this.arrayType = arrayType;
     }
-
 }

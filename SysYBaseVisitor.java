@@ -1,4 +1,4 @@
-// Generated from /Users/leozhudd/Desktop/大三上课程Doc/编译原理/Labs/Lab7/SysY.g4 by ANTLR 4.9.1
+// Generated from /Users/leozhudd/Desktop/大三上课程Doc/编译原理/Labs/Lab8/SysY.g4 by ANTLR 4.9.1
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
 /**
@@ -94,6 +94,20 @@ public class SysYBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements S
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitFuncType(SysYParser.FuncTypeContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitFuncFParams(SysYParser.FuncFParamsContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitFuncFParam(SysYParser.FuncFParamContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

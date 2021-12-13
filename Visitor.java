@@ -11,10 +11,20 @@ public class Visitor extends SysYBaseVisitor<String> {
     private int regId = 1; // 从1开始
     private boolean globalFlag = true; // 指示全局变量定义
     private boolean arrayFlag = false; // 指示数组声明
+    private boolean funcCallFlag = false;
+    private String funcCallingType = "";
 
-    // compUnit: decl* funcDef;
+    // compUnit: (decl | funcDef)+
     @Override
     public String visitCompUnit(SysYParser.CompUnitContext ctx) {
+        System.out.println("declare void @memset(i32*, i32, i32)");
+        System.out.println("declare i32 @getint()");
+        System.out.println("declare void @putint(i32)");
+        System.out.println("declare i32 @getch()");
+        System.out.println("declare void @putch(i32)");
+        System.out.println("declare i32 @getarray(i32*)");
+        System.out.println("declare void @putarray(i32, i32*)");
+        System.out.println();
         /*
         先压一个栈，代表全局变量的符号表
         此处的decl模块都是全局变量定义，需一直保持globalFlag=true
@@ -26,12 +36,14 @@ public class Visitor extends SysYBaseVisitor<String> {
             visit(e);
         }
         globalFlag = false;
-        return visit(ctx.funcDef());
+        // TODO: 这里乱序访问的compunit，先访问了所有全局变量定义，然后才访问了所有的函数定义，这种顺序可能有问题
+        for(SysYParser.FuncDefContext e: ctx.funcDef()) {
+            visit(e);
+        }
+        return null;
     }
 
     // constDef: Ident ('[' constExp ']' )* '=' constInitVal
-    // TODO: 全局数组的 ConstInitVal/InitVal 中的 ConstExp/Exp 必须是编译时可求值的常量表达式。
-    // TODO: 局部常量数组的 ConstInitVal 中的 ConstExp 必须是编译时可求值的表达式。
     String nowInitArray = "";
     @Override
     public String visitConstDef(SysYParser.ConstDefContext ctx) {
@@ -58,7 +70,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                 assignMap.put(name, new Variable(name, "@" + name, true, true, Integer.parseInt(value)));
             }
         }
-        else { // TODO: 数组声明
+        else { // 数组声明
             nowInitArray = name;
             ArrayList<Integer>arrayDim = new ArrayList<>(); // 保存数组每一维度的长度
             if(!globalFlag) {
@@ -70,7 +82,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                 // 遍历每个维度的长度，例如a[4][5]的[4]和[5]
                 StringBuilder arrayType = new StringBuilder();
                 for(SysYParser.ConstExpContext e: ctx.constExp()) {
-                    String len = visit(e); // TODO: 数组的各维长度必须是编译时可求值的【非负】【常量表达式】。
+                    String len = visit(e); // 数组的各维长度必须是编译时可求值的【非负】【常量表达式】。
                     if(len.startsWith("-")) {
                         System.exit(-1);
                     }
@@ -109,7 +121,7 @@ public class Visitor extends SysYBaseVisitor<String> {
 
                 StringBuilder arrayType = new StringBuilder();
                 for(SysYParser.ConstExpContext e: ctx.constExp()) {
-                    String len = visit(e); // TODO: 数组的各维长度必须是编译时可求值的【非负】【常量表达式】。
+                    String len = visit(e); // 数组的各维长度必须是编译时可求值的【非负】【常量表达式】。
                     if(len.startsWith("-")) {
                         System.exit(-1);
                     }
@@ -203,7 +215,7 @@ public class Visitor extends SysYBaseVisitor<String> {
             }
             return null;
         }
-        else { //TODO: 全局数组的初始值
+        else { // 全局数组的初始值
             // 初值必须是常量表达式
             Variable array = assignStack.peek().get(nowInitArray);
             if(ctx.constExp() != null) { // constExp
@@ -269,7 +281,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                 // 遍历每个维度的长度，例如a[4][5]的[4]和[5]
                 StringBuilder arrayType = new StringBuilder();
                 for(SysYParser.ConstExpContext e: ctx.constExp()) {
-                    String len = visit(e); // TODO: 数组的各维长度必须是编译时可求值的【非负】【常量表达式】。
+                    String len = visit(e); // 数组的各维长度必须是编译时可求值的【非负】【常量表达式】。
                     if(len.startsWith("-")) {
                         System.exit(-1);
                     }
@@ -316,7 +328,7 @@ public class Visitor extends SysYBaseVisitor<String> {
 
                 StringBuilder arrayType = new StringBuilder();
                 for(SysYParser.ConstExpContext e: ctx.constExp()) {
-                    String len = visit(e); // TODO: 数组的各维长度必须是编译时可求值的【非负】【常量表达式】。
+                    String len = visit(e); // 数组的各维长度必须是编译时可求值的【非负】【常量表达式】。
                     if(len.startsWith("-")) {
                         System.exit(-1);
                     }
@@ -382,7 +394,7 @@ public class Visitor extends SysYBaseVisitor<String> {
             }
             return null;
         }
-        else { //TODO: 全局数组的初始值
+        else { // 全局数组的初始值
             // 初值必须是常量表达式
             Variable array = assignStack.peek().get(nowInitArray);
             if(ctx.exp() != null) { // constExp
@@ -409,29 +421,88 @@ public class Visitor extends SysYBaseVisitor<String> {
         }
     }
 
-    // funcDef: funcType Ident '(' ')' block;
+    // TODO: funcDef: funcType Ident '(' (funcFParams)? ')' block;
     @Override
     public String visitFuncDef(SysYParser.FuncDefContext ctx) {
-        System.out.println("declare void @memset(i32*, i32, i32)");
-        System.out.println("declare i32 @getint()");
-        System.out.println("declare void @putint(i32)");
-        System.out.println("declare i32 @getch()");
-        System.out.println("declare void @putch(i32)");
+        String funcName = ctx.Ident().getText();
+        Map<String,Variable> assignMap = assignStack.peek(); // 取出符号表
+        if(assignMap.containsKey(funcName)) { // 如果符号表中已经有这个名字，报错退出
+            System.exit(-1);
+        }
+
         System.out.print("define dso_local ");
         visit(ctx.funcType());
-        String funcName = ctx.Ident().getText();
-        System.out.print("@" + funcName + "()");
-        System.out.println("{");
-        visit(ctx.block());
+        String param_length = "0";
+
+        System.out.print("@" + funcName + "(");
+        if(ctx.funcFParams() != null) {
+            param_length = visit(ctx.funcFParams());
+        }
+        System.out.println(") {");
+
+        // 这个函数的符号表中保存自己的信息（递归调用）
+
+        addToAssignMapWhenBlock.push(new Variable(funcName, ctx.funcType().VOID()!=null, Integer.parseInt(param_length)));
+
+        visit(ctx.block()); // 访问函数体了！
+        if(ctx.funcType().VOID()!=null) System.out.println("    ret void");
         System.out.println("}");
+        // 全局符号表中保存函数名和函数信息
+        assignMap.put(funcName, new Variable(funcName, ctx.funcType().VOID()!=null, Integer.parseInt(param_length)));
+
         return null;
     }
 
-    // funcType: INT;
+    // TODO: funcType: VOID | INT;
     @Override
     public String visitFuncType(SysYParser.FuncTypeContext ctx) {
-        System.out.print("i32 ");
+        if(ctx.INT() != null) {
+            System.out.print("i32 ");
+        }
+        else if(ctx.VOID() != null) {
+            System.out.print("void ");
+        }
+        else System.exit(-1);
         return null;
+    }
+
+    // TODO: funcFParams: funcFParam (',' funcFParam)*
+    // TODO: funcFParam: bType Ident ('[' ']' ('[' exp ']')*)?
+    private Stack<Variable>addToAssignMapWhenBlock = new Stack<>();
+    @Override
+    public String visitFuncFParams(SysYParser.FuncFParamsContext ctx) {
+        for(int i=0;i<ctx.funcFParam().size();i++) {
+            if(i != 0) System.out.print(", ");
+            String param_reg = "%r" + regId++;
+            // TODO: 建立这个函数的符号表
+            String name = ctx.funcFParam(i).Ident().getText();
+            if(ctx.funcFParam(i).ARRAY_IDX_LEFT().size() == 0) { // 参数是变量
+                System.out.print("i32 " + param_reg);
+                addToAssignMapWhenBlock.push(new Variable(true, name, param_reg, true));
+            }
+            else { // 参数是数组
+                // 拿到arrayType和arrayDim
+                StringBuilder arrayType = new StringBuilder();
+                ArrayList<Integer>arrayDim = new ArrayList<>();
+                for(SysYParser.ExpContext e: ctx.funcFParam(i).exp()) {
+                    String len = visit(e); // 数组的各维长度必须是编译时可求值的【非负】【常量表达式】。
+                    if(len.startsWith("-")) {
+                        System.exit(-1);
+                    }
+                    arrayDim.add(Integer.parseInt(len));
+                    arrayType.append("[").append(len).append(" x ");
+                    // 例如：[2 x [2 x i32]]
+                }
+                arrayType.append("i32");
+                for(int j=0;j<arrayDim.size();j++) {
+                    arrayType.append("]");
+                }
+                System.out.print(arrayType + "* " + param_reg);
+                arrayDim.add(0, 0);
+                addToAssignMapWhenBlock.add(new Variable(name, param_reg, false, arrayDim, arrayType.toString(), true));
+            }
+        }
+        return String.valueOf(ctx.funcFParam().size());
     }
 
     // block: '{' (blockItem)* '}';
@@ -443,6 +514,11 @@ public class Visitor extends SysYBaseVisitor<String> {
         基本块的最后一条指令必须是一个跳转指令或返回指令，且中间不会出现跳转和返回指令。
         */
         Map<String,Variable> assignMap = new HashMap<>(); // 声明这个block的符号表
+        while(!addToAssignMapWhenBlock.empty()) {
+            Variable v = addToAssignMapWhenBlock.pop();
+            assignMap.put(v.name, v);
+        }
+
         assignStack.push(assignMap); // 压入符号表栈
         visitChildren(ctx);
         assignStack.pop(); // 删除这个block的符号表
@@ -451,7 +527,7 @@ public class Visitor extends SysYBaseVisitor<String> {
 
     //. stmt: lVal '=' exp ';'
     // | (exp)? ';'
-    //. | 'return' exp ';'
+    //. | 'return' (exp)? ';'
     //. | block
     //. | IF '(' cond ')' stmt ('else' stmt)?
     // | WHILE '(' cond ')' stmt // while
@@ -460,7 +536,10 @@ public class Visitor extends SysYBaseVisitor<String> {
     @Override
     public String visitStmt(SysYParser.StmtContext ctx) {
         if(ctx.RETURN() != null) { // Return
-            System.out.println("    ret i32 " + visit(ctx.exp()));
+            if(ctx.exp() != null) {
+                System.out.println("    ret i32 " + visit(ctx.exp()));
+            }
+            else System.out.println("    ret void");
         }
         else if(ctx.lVal() != null) { // Assign
             String name = ctx.lVal().Ident().getText();
@@ -474,9 +553,10 @@ public class Visitor extends SysYBaseVisitor<String> {
                 }
             }
             if(val == null) System.exit(-1);
-            if(ctx.lVal().exp().size() != 0) { // 给数组赋值
-                if(val.isConst || val.arrayDim.size() != ctx.lVal().exp().size()) System.exit(-1); // 如果是常量数组或维度不匹配
 
+            if(ctx.lVal().exp().size() != 0) { // 给数组赋值
+                // TODO: 非参数数组的arraydim不需要+1？参数数组的dim少了1
+                if(val.isConst || val.arrayDim.size() != ctx.lVal().exp().size()) System.exit(-1); // 如果是常量数组或维度不匹配
                 // getelemenptr之前先把所有exp算出来
                 ArrayList<String>expResults = new ArrayList<>();
                 for(SysYParser.ExpContext e: ctx.lVal().exp()) {
@@ -485,8 +565,10 @@ public class Visitor extends SysYBaseVisitor<String> {
 
                 String elm_reg = "%r" + regId++;
                 System.out.print("    " + elm_reg + " = getelementptr ");
+
                 System.out.print(val.arrayType + ", ");
-                System.out.print(val.arrayType + "* " + val.reg + ", i32 0");
+                if(val.isParam) System.out.print(val.arrayType + "* " + val.reg);
+                else System.out.print(val.arrayType + "* " + val.reg + ", i32 0");
                 for(String exp: expResults) {
                     System.out.print(", i32 " + exp);
                 }
@@ -572,30 +654,68 @@ public class Visitor extends SysYBaseVisitor<String> {
             }
         }
         if(val == null) System.exit(-1);
-        if(ctx.exp().size() != 0) { // 如果是数组
-            if(val.arrayDim.size() != ctx.exp().size()) System.exit(-1); // 如果维度不匹配
-
-            // getelemenptr之前先把所有exp算出来，否则add等指令会夹杂在getelem中间，导致出错
-            ArrayList<String>expResults = new ArrayList<>();
-            for(SysYParser.ExpContext e: ctx.exp()) {
-                expResults.add(visit(e));
+        if(val.arrayType != null) { // 如果是数组
+        // if(ctx.exp().size() != 0) { // TODO: 如果是数组【不能通过exp个数判断】
+            // TODO: 访问数组的exp可以为0，例如func(arr)，把arr整体读出来
+            if(funcCallFlag) { // 在函数调用时访问数组
+                ArrayList<String>expResults = new ArrayList<>();
+                for(SysYParser.ExpContext e: ctx.exp()) {
+                    expResults.add(visit(e));
+                }
+                funcCallingType = val.arrayType.substring(5, val.arrayType.length()-1) + "*";
+                String elm_reg = "%r" + regId++;
+                System.out.print("    " + elm_reg + " = getelementptr ");
+                System.out.print(val.arrayType + ", ");
+                System.out.print(val.arrayType + "* " + val.reg);
+                for(String exp: expResults) {
+                    System.out.print(", i32 " + exp);
+                }
+                if(val.arrayDim.size() != ctx.exp().size()) {
+                    // 传入的数组元素idx指定的的维度并不是完整维度
+                    // 可以将二维数组的一部分传到形参数组中，
+                    // 如定义了 int a[4][3]，可以将 a[1] 作为一个包含三个元素的一维数组传递给类型为 int[] 的形参。
+                    for(int i=0;i<val.arrayDim.size()-ctx.exp().size();i++) {
+                        System.out.print(", i32 0");
+                    }
+                }
+                System.out.println();
+                return elm_reg;
             }
+            else { // 在block中访问数组
+                // System.out.println(val.arrayDim.size());
+                // System.out.println(ctx.exp().size());
+                if(val.arrayDim.size() != ctx.exp().size()) System.exit(-1); // 如果维度不匹配
+                // getelemenptr之前先把所有exp算出来，否则add等指令会夹杂在getelem中间，导致出错
+                ArrayList<String>expResults = new ArrayList<>();
+                for(SysYParser.ExpContext e: ctx.exp()) {
+                    expResults.add(visit(e));
+                }
 
-            String elm_reg = "%r" + regId++;
-            System.out.print("    " + elm_reg + " = getelementptr ");
-            System.out.print(val.arrayType + ", ");
-            System.out.print(val.arrayType + "* " + val.reg + ", i32 0");
-            for(String exp: expResults) {
-                System.out.print(", i32 " + exp);
+                String elm_reg = "%r" + regId++;
+                System.out.print("    " + elm_reg + " = getelementptr ");
+                System.out.print(val.arrayType + ", ");
+                if(val.isParam)
+                    System.out.print(val.arrayType + "* " + val.reg);
+                else
+                    System.out.print(val.arrayType + "* " + val.reg + ", i32 0");
+                for(String exp: expResults) {
+                    System.out.print(", i32 " + exp);
+                }
+
+                System.out.println();
+                String target_reg = "%r" + regId++;
+                System.out.println("    " + target_reg + " = load i32, i32* " + elm_reg);
+                return target_reg;
             }
-
-            System.out.println();
-            String target_reg = "%r" + regId++;
-            System.out.println("    " + target_reg + " = load i32, i32* " + elm_reg);
-            return target_reg;
         }
         else if(val.valInit) {
+            if(funcCallFlag) {
+                funcCallingType = "i32";
+            }
             if(!globalFlag) {
+                if(val.isParam) {
+                    return val.reg;
+                }
                 String target_reg = "%r" + regId++;
                 System.out.println("    " + target_reg + " = load i32, i32* " + val.reg);
                 return target_reg;
@@ -682,23 +802,64 @@ public class Visitor extends SysYBaseVisitor<String> {
         if(ctx.primaryExp() != null) { // 是[primaryExp]
             return visit(ctx.primaryExp());
         }
-        else if(ctx.Ident() != null) { // [func]
+        else if(ctx.Ident() != null) { // 调用函数
+            funcCallFlag = true;
             String func = ctx.Ident().getText();
+
+            // TODO: 这里没有考虑函数名和putint/getint等库函数冲突的问题
             if(func.equals("getint") && ctx.funcRParams() == null) {
                 String reg = "%r" + regId++;
                 System.out.println("    " + reg + " = call i32 @getint()");
                 return reg;
             } else if (func.equals("putint") && ctx.funcRParams() != null) {
-                System.out.println("    call void @putint(i32 " + visit(ctx.funcRParams()) + ")");
+                System.out.println("    call void @putint(i32 " + visit(ctx.funcRParams().exp(0)) + ")");
             } else if (func.equals("getch") && ctx.funcRParams() == null) {
                 String reg = "%r" + regId++;
                 System.out.println("    " + reg + " = call i32 @getch()");
                 return reg;
             } else if (func.equals("putch") && ctx.funcRParams() != null) {
-                System.out.println("    call void @putch(i32 " + visit(ctx.funcRParams()) + ")");
+                System.out.println("    call void @putch(i32 " + visit(ctx.funcRParams().exp(0)) + ")");
+            } else if (func.equals("getarray") && ctx.funcRParams() != null) {
+                String reg = "%r" + regId++;
+                System.out.println("    " + reg + " = call i32 @getarray(" + visit(ctx.funcRParams()) + ")");
+                return reg;
+            } else if (func.equals("putarray") && ctx.funcRParams() != null) {
+                System.out.println("    call void @putarray(" + visit(ctx.funcRParams()) + ")");
             } else {
-                System.exit(6);
+                // 其他自定义函数
+                Variable val = null;
+                // 遍历符号表栈，找到最内层的变量并取出
+                // TODO: 考虑内层变量名是否可以覆盖函数，是否允许同名
+                for(int i=assignStack.size()-1;i>=0;i--) {
+                    Map<String,Variable> assignMap = assignStack.get(i);
+                    if(assignMap.containsKey(func)) {
+                        val = assignMap.get(func);
+                        break;
+                    }
+                }
+                if(val == null) System.exit(-1);
+                if(ctx.funcRParams().exp().size() != val.param_length) {
+                    System.exit(-1);
+                }
+
+                // TODO: int变量按值传递
+                if(!val.retVoid) { // 有返回值
+                    String reg = "%r" + regId++;
+                    if(ctx.funcRParams() == null)
+                        System.out.println("    " + reg + " = call i32 @" + val.name + "()");
+                    else
+                        System.out.println("    " + reg + " = call i32 @" + val.name + "(" + visit(ctx.funcRParams()) + ")");
+                    return reg;
+                }
+                else { // 没有返回值
+                    if(ctx.funcRParams() == null)
+                        System.out.println("    call void @" + val.name + "()");
+                    else
+                        System.out.println("    call void @" + val.name + "(" + visit(ctx.funcRParams()) + ")");
+                }
+
             }
+            funcCallFlag = false;
             return null;
         }
         else { // 是[unaryExp]
@@ -725,17 +886,22 @@ public class Visitor extends SysYBaseVisitor<String> {
         }
     }
 
-/*
+    // private boolean needVarValueButNotPtrFlag = false;
     @Override
     public String visitFuncRParams(SysYParser.FuncRParamsContext ctx) {
-//        String param = "";
-//        for(SysYParser.ExpContext exp: ctx.exp()){
-//            param = param + visit(exp);
-//        }
-//        return param;
-        return visit(ctx.exp(0));
+        StringBuilder tmp = new StringBuilder("");
+        boolean first = true;
+        // needVarValueButNotPtrFlag = true;
+        for(SysYParser.ExpContext exp: ctx.exp()){
+            if(!first) tmp.append(", ");
+            first = false;
+
+            String exp_result = visit(exp);
+            tmp.append(funcCallingType).append(" ").append(exp_result);
+        }
+        // needVarValueButNotPtrFlag = false;
+        return tmp.toString();
     }
-*/
 
     // primaryExp: '(' exp ')' | lVal | number;
     @Override
@@ -915,6 +1081,10 @@ class Variable {
     int value;
     ArrayList<Integer>arrayDim;
     String arrayType;
+    boolean isFunc = false;
+    boolean retVoid;
+    int param_length;
+    boolean isParam = false;
 
     public Variable(String name, String reg, boolean isConst, boolean valInit) {
         this.name = name;
@@ -937,5 +1107,28 @@ class Variable {
         this.isConst = isConst;
         this.arrayDim = arrayDim;
         this.arrayType = arrayType;
+    }
+
+    public Variable(String name, String reg, boolean isConst, ArrayList<Integer>arrayDim, String arrayType, boolean isParam) {
+        this.name = name;
+        this.reg = reg;
+        this.isConst = isConst;
+        this.arrayDim = arrayDim;
+        this.arrayType = arrayType;
+        this.isParam = isParam;
+    }
+
+    public Variable(String name, boolean retVoid, int param_length) {
+        this.isFunc = true;
+        this.name = name;
+        this.param_length = param_length;
+        this.retVoid = retVoid;
+    }
+
+    public Variable(boolean isParam, String name, String reg, boolean valInit) {
+        this.name = name;
+        this.reg = reg;
+        this.valInit = valInit;
+        this.isParam = isParam;
     }
 }

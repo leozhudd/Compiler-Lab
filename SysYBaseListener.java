@@ -1,4 +1,4 @@
-// Generated from /Users/leozhudd/Desktop/大三上课程Doc/编译原理/Labs/Lab7/SysY.g4 by ANTLR 4.9.1
+// Generated from /Users/leozhudd/Desktop/大三上课程Doc/编译原理/Labs/Lab8/SysY.g4 by ANTLR 4.9.1
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
@@ -154,6 +154,30 @@ public class SysYBaseListener implements SysYListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitFuncType(SysYParser.FuncTypeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFuncFParams(SysYParser.FuncFParamsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFuncFParams(SysYParser.FuncFParamsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFuncFParam(SysYParser.FuncFParamContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFuncFParam(SysYParser.FuncFParamContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

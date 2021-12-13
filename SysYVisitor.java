@@ -1,4 +1,4 @@
-// Generated from /Users/leozhudd/Desktop/大三上课程Doc/编译原理/Labs/Lab7/SysY.g4 by ANTLR 4.9.1
+// Generated from /Users/leozhudd/Desktop/大三上课程Doc/编译原理/Labs/Lab8/SysY.g4 by ANTLR 4.9.1
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -81,6 +81,18 @@ public interface SysYVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitFuncType(SysYParser.FuncTypeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#funcFParams}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFuncFParams(SysYParser.FuncFParamsContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#funcFParam}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFuncFParam(SysYParser.FuncFParamContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SysYParser#block}.
 	 * @param ctx the parse tree

@@ -1,4 +1,4 @@
-// Generated from /Users/leozhudd/Desktop/大三上课程Doc/编译原理/Labs/Lab7/SysY.g4 by ANTLR 4.9.1
+// Generated from /Users/leozhudd/Desktop/大三上课程Doc/编译原理/Labs/Lab8/SysY.g4 by ANTLR 4.9.1
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -126,6 +126,26 @@ public interface SysYListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFuncType(SysYParser.FuncTypeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SysYParser#funcFParams}.
+	 * @param ctx the parse tree
+	 */
+	void enterFuncFParams(SysYParser.FuncFParamsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SysYParser#funcFParams}.
+	 * @param ctx the parse tree
+	 */
+	void exitFuncFParams(SysYParser.FuncFParamsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SysYParser#funcFParam}.
+	 * @param ctx the parse tree
+	 */
+	void enterFuncFParam(SysYParser.FuncFParamContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SysYParser#funcFParam}.
+	 * @param ctx the parse tree
+	 */
+	void exitFuncFParam(SysYParser.FuncFParamContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SysYParser#block}.
 	 * @param ctx the parse tree

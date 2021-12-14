@@ -686,11 +686,11 @@ public class Visitor extends SysYBaseVisitor<String> {
         if(val == null) System.exit(-1);
         if(val.arrayType != null) { // 如果是数组
             // TODO: 访问数组的exp可以为0，例如func(arr)，把arr整体读出来
-            System.out.println("funcCallFlagNow: "+funcCallFlag);
-            if(funcCallFlag) { // 在函数调用时访问数组
-                if(val.arrayDim.size() < ctx.exp().size()) { // 访问的维度超了，直接退出
-                    System.exit(-1);
-                }
+            if(val.arrayDim.size() < ctx.exp().size()) { // 访问的维度超了，直接退出
+                System.exit(-1);
+            }
+            // System.out.println("funcCallFlagNow: "+funcCallFlag);
+            if(funcCallFlag && val.arrayDim.size() > ctx.exp().size()) { // 函数调用时访问数组（没有退化到int）
                 ArrayList<String>expResults = new ArrayList<>();
                 funcCallingType = val.arrayType;
                 boolean noStarFlag = false;
@@ -753,14 +753,14 @@ public class Visitor extends SysYBaseVisitor<String> {
                 String elm_reg = "%r" + regId++;
                 System.out.print("    " + elm_reg + " = getelementptr ");
                 System.out.print(val.arrayType + ", ");
-                System.out.println("array is param? "+val.isParam);
-                System.out.println("array type? "+val.arrayType);
-                System.out.println("array dim? "+val.arrayDim.toString());
-                System.out.println("exp size? "+ctx.exp().size());
-                System.out.println("exp result size? "+expResults.size());
-                for(String exp: expResults) {
-                    System.out.println("this exp result = " + exp);
-                }
+//                System.out.println("array is param? "+val.isParam);
+//                System.out.println("array type? "+val.arrayType);
+//                System.out.println("array dim? "+val.arrayDim.toString());
+//                System.out.println("exp size? "+ctx.exp().size());
+//                System.out.println("exp result size? "+expResults.size());
+//                for(String exp: expResults) {
+//                    System.out.println("this exp result = " + exp);
+//                }
                 if(val.isParam)
                     System.out.print(val.arrayType + "* " + val.reg);
                 else
@@ -867,9 +867,9 @@ public class Visitor extends SysYBaseVisitor<String> {
             return visit(ctx.primaryExp());
         }
         else if(ctx.Ident() != null) { // 调用函数
-            funcCallFlag = true;
+            // funcCallFlag = true;
             String func = ctx.Ident().getText();
-            System.out.println("Func call flag is true with "+func);
+            // System.out.println("Func call flag is true with "+func);
 
             // TODO: 这里没有考虑函数名和putint/getint等库函数冲突的问题
             if(func.equals("getint") && ctx.funcRParams() == null) {
@@ -924,7 +924,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                         System.out.println("    call void @" + val.name + "(" + visit(ctx.funcRParams()) + ")");
                 }
             }
-            funcCallFlag = false;
+            // funcCallFlag = false;
             return null;
         }
         else { // 是[unaryExp]
@@ -951,6 +951,17 @@ public class Visitor extends SysYBaseVisitor<String> {
         }
     }
 
+//    public static boolean arrayAsParam(String exp) {
+//        int len = exp.length();
+//        boolean flag1 = false, flag2 = false, flag3 = false;
+//        for(int i=len-1;i>=0;i--) {
+//            if(exp.charAt(i) == ']') flag1 = true;
+//            if(flag1 && exp.charAt(i) == '[') flag2 = true;
+//            if(flag1 && flag2 && exp.charAt(i) == ']') flag3 = true;
+//        }
+//        if(flag1 && flag2 && !flag3)
+//    }
+
     @Override
     public String visitFuncRParams(SysYParser.FuncRParamsContext ctx) {
         StringBuilder tmp = new StringBuilder("");
@@ -958,8 +969,11 @@ public class Visitor extends SysYBaseVisitor<String> {
         for(SysYParser.ExpContext exp: ctx.exp()){
             if(!first) tmp.append(", ");
             first = false;
-
+            // if(arrayAsParam(exp.getText())) {
+                funcCallFlag = true;
+           // }
             String exp_result = visit(exp);
+            funcCallFlag = false;
 //            System.out.println("FuncCallingType: "+funcCallingType);
 //            System.out.println("value_result: "+exp_result);
             tmp.append(funcCallingType).append(" ").append(exp_result);

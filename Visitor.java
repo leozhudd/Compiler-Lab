@@ -655,14 +655,25 @@ public class Visitor extends SysYBaseVisitor<String> {
         }
         if(val == null) System.exit(-1);
         if(val.arrayType != null) { // 如果是数组
-        // if(ctx.exp().size() != 0) { // TODO: 如果是数组【不能通过exp个数判断】
             // TODO: 访问数组的exp可以为0，例如func(arr)，把arr整体读出来
             if(funcCallFlag) { // 在函数调用时访问数组
-                ArrayList<String>expResults = new ArrayList<>();
-                for(SysYParser.ExpContext e: ctx.exp()) {
-                    expResults.add(visit(e));
+                if(val.arrayDim.size() < ctx.exp().size()) { // 访问的维度超了，直接退出
+                    System.exit(-1);
                 }
-                funcCallingType = val.arrayType.substring(5, val.arrayType.length()-1) + "*";
+                ArrayList<String>expResults = new ArrayList<>();
+                funcCallingType = val.arrayType;
+                // System.out.println("START TYPE: "+funcCallingType);
+                for(SysYParser.ExpContext e: ctx.exp()) { // 有一层取值，维度就-1，例如arr[1]就是arr的维度-1
+                    expResults.add(visit(e));
+                    funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
+                    // System.out.println("AFTER TYPE: "+funcCallingType);
+                }
+                if(funcCallingType.length()>3) { // 传数组时，维度统一需要-1
+                    funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
+                    funcCallingType += "*";
+                }
+                // System.out.println("FINAL TYPE: "+funcCallingType);
+
                 String elm_reg = "%r" + regId++;
                 System.out.print("    " + elm_reg + " = getelementptr ");
                 System.out.print(val.arrayType + ", ");
@@ -670,16 +681,19 @@ public class Visitor extends SysYBaseVisitor<String> {
                 for(String exp: expResults) {
                     System.out.print(", i32 " + exp);
                 }
-                if(val.arrayDim.size() != ctx.exp().size()) {
-                    // 传入的数组元素idx指定的的维度并不是完整维度
-                    // 可以将二维数组的一部分传到形参数组中，
-                    // 如定义了 int a[4][3]，可以将 a[1] 作为一个包含三个元素的一维数组传递给类型为 int[] 的形参。
-                    for(int i=0;i<val.arrayDim.size()-ctx.exp().size();i++) {
-                        System.out.print(", i32 0");
-                    }
+
+                // TODO: 如果传的是arr本身，那么需要两个i32 0就可以降一维
+                // if(ctx.exp().size() == 0) { // 没有exp->是本身
+                if(val.arrayDim.size() != ctx.exp().size()) { // 如果数组最后还是数组
+                    System.out.println(", i32 0, i32 0");
+                    return elm_reg;
                 }
-                System.out.println();
-                return elm_reg;
+                else { // 如果数组退化成了int
+                    System.out.println(", i32 0");
+                    String int_reg = "%r" + regId++;
+                    System.out.println("    " + int_reg + " = load i32, i32* " + elm_reg);
+                    return int_reg;
+                }
             }
             else { // 在block中访问数组
                 // System.out.println(val.arrayDim.size());

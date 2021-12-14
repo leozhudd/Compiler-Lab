@@ -666,10 +666,10 @@ public class Visitor extends SysYBaseVisitor<String> {
                     String tmp = funcCallingType;
                     expResults.add(visit(e));
                     funcCallingType = tmp;
-                    // System.out.println("START TYPE: "+funcCallingType);
-                    // System.out.println("arrayType: "+val.arrayType);
+                    System.out.println("START TYPE: "+funcCallingType);
+                    System.out.println("arrayType: "+val.arrayType);
                     funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
-                    // System.out.println("AFTER TYPE: "+funcCallingType);
+                    System.out.println("AFTER TYPE: "+funcCallingType);
                 }
                 if(!val.isParam && funcCallingType.length()>3) { // 传数组时，维度统一需要-1（如果数组原本就是参数，则不用降维）
                     funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
@@ -678,7 +678,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                 if(val.isParam && funcCallingType.length()>3) {
                     funcCallingType += "*";
                 }
-                // System.out.println("FINAL TYPE: "+funcCallingType);
+                System.out.println("FINAL TYPE: "+funcCallingType);
 
                 String elm_reg = "%r" + regId++;
                 System.out.print("    " + elm_reg + " = getelementptr ");

@@ -650,6 +650,23 @@ public class Visitor extends SysYBaseVisitor<String> {
         return null;
     }
 
+    public static String splitArrayType(String type) {
+        int len = type.length();
+        if(type.charAt(len-2) == ']') { // [99999 x [99999 x i32]]
+            int i = 1;
+            for(;i<len;i++) {
+                if(type.charAt(i) == '[') {
+                    break;
+                }
+            }
+            return type.substring(i, len-1);
+        }
+        else { // [99999 x i32]
+            return type.substring(len-4, len-1);
+        }
+    }
+
+
     @Override
     public String visitLVal(SysYParser.LValContext ctx) {
         String name = ctx.Ident().getText();
@@ -676,25 +693,25 @@ public class Visitor extends SysYBaseVisitor<String> {
                     String tmp = funcCallingType;
                     expResults.add(visit(e));
                     funcCallingType = tmp;
-                    System.out.println("START TYPE: "+funcCallingType);
-                    System.out.println("arrayType: "+val.arrayType);
+//                    System.out.println("START TYPE: "+funcCallingType);
+//                    System.out.println("arrayType: "+val.arrayType);
 //                    System.out.println("name is "+val.name);
 //                    System.out.println("exp is "+e.getText());
 //                    System.out.println("callingFlag "+funcCallFlag);
                     if(funcCallingType.length()>5)
-                        funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
+                        funcCallingType = splitArrayType(funcCallingType);
                     else
                         noStarFlag = true;
-                    System.out.println("AFTER TYPE: "+funcCallingType);
+                    // System.out.println("AFTER TYPE: "+funcCallingType);
                 }
                 if(!val.isParam && funcCallingType.length()>5) { // 传数组时，维度统一需要-1（如果数组原本就是参数，则不用降维）
-                    funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
+                    funcCallingType = splitArrayType(funcCallingType);
                     funcCallingType += "*";
                 }
                 if(val.isParam && !noStarFlag) {
                     funcCallingType += "*";
                 }
-                System.out.println("FINAL TYPE: "+funcCallingType);
+                // System.out.println("FINAL TYPE: "+funcCallingType);
 
                 String elm_reg = "%r" + regId++;
                 System.out.print("    " + elm_reg + " = getelementptr ");
@@ -929,8 +946,8 @@ public class Visitor extends SysYBaseVisitor<String> {
             first = false;
 
             String exp_result = visit(exp);
-            System.out.println("FuncCallingType: "+funcCallingType);
-            System.out.println("value_result: "+exp_result);
+//            System.out.println("FuncCallingType: "+funcCallingType);
+//            System.out.println("value_result: "+exp_result);
             tmp.append(funcCallingType).append(" ").append(exp_result);
         }
         return tmp.toString();

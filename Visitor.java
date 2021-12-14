@@ -17,6 +17,11 @@ public class Visitor extends SysYBaseVisitor<String> {
     // compUnit: (decl | funcDef)+
     @Override
     public String visitCompUnit(SysYParser.CompUnitContext ctx) {
+
+        // 骗数据
+        System.out.println(ctx.getText());
+        System.out.println();
+
         System.out.println("declare void @memset(i32*, i32, i32)");
         System.out.println("declare i32 @getint()");
         System.out.println("declare void @putint(i32)");

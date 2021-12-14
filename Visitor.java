@@ -738,7 +738,11 @@ public class Visitor extends SysYBaseVisitor<String> {
             }
             if(!globalFlag) {
                 if(val.isParam) {
-                    return val.reg;
+                    String ptr_reg = "%r" + regId++;
+                    System.out.println("    " + ptr_reg + " = alloca i32");
+                    System.out.println("    store i32 " + val.reg + ", i32* " + ptr_reg);
+                    val.isParam = false;
+                    val.reg = ptr_reg;
                 }
                 String target_reg = "%r" + regId++;
                 System.out.println("    " + target_reg + " = load i32, i32* " + val.reg);
@@ -910,12 +914,10 @@ public class Visitor extends SysYBaseVisitor<String> {
         }
     }
 
-    // private boolean needVarValueButNotPtrFlag = false;
     @Override
     public String visitFuncRParams(SysYParser.FuncRParamsContext ctx) {
         StringBuilder tmp = new StringBuilder("");
         boolean first = true;
-        // needVarValueButNotPtrFlag = true;
         for(SysYParser.ExpContext exp: ctx.exp()){
             if(!first) tmp.append(", ");
             first = false;
@@ -923,7 +925,6 @@ public class Visitor extends SysYBaseVisitor<String> {
             String exp_result = visit(exp);
             tmp.append(funcCallingType).append(" ").append(exp_result);
         }
-        // needVarValueButNotPtrFlag = false;
         return tmp.toString();
     }
 
@@ -939,6 +940,9 @@ public class Visitor extends SysYBaseVisitor<String> {
     // number: DECIMAL_CONST | OCTAL_CONST | HEXADECIMAL_CONST;
     @Override
     public String visitNumber(SysYParser.NumberContext ctx) {
+        if(funcCallFlag) { // 导出函数参数类型
+            funcCallingType = "i32";
+        }
         if(ctx.DECIMAL_CONST() != null) {
             return ctx.getText();
         }

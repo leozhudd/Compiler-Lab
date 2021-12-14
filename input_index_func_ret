@@ -1,7 +1,6 @@
 int _getMaxOfAll(int result[],int size){
     int maxNum;
     maxNum=-999999;
-
     size=size-1;
     while(size>-1){
         if(result[size]>maxNum){

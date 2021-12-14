@@ -9,88 +9,79 @@ target triple = "x86_64-apple-macosx10.14.0"
 @.str.3 = private unnamed_addr constant [4 x i8] c" %d\00", align 1
 @.str.4 = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
 
-define dso_local i32 @exgcd(i32 %r1, i32 %r2, i32* %r3, i32* %r4) {
-  %r5 = icmp eq i32 %r2, 0
-  %r6 = zext i1 %r5 to i32
-  %r7 = icmp ne i32 %r6, 0
-  br i1 %r7, label %r8, label %r9
+define dso_local i32 @_getMaxOfAll(i32* %r1, i32 %r2) {
+  %r3 = alloca i32, align 4
+  %r4 = sub i32 0, 999999
+  store i32 %r4, i32* %r3, align 4
+  %r5 = alloca i32, align 4
+  store i32 %r2, i32* %r5, align 4
+  %r6 = load i32, i32* %r5, align 4
+  %r7 = sub i32 %r6, 1
+  store i32 %r7, i32* %r5, align 4
+  br label %r8
 
-r8:                                               ; preds = %0
-  %r11 = getelementptr i32, i32* %r3, i32 0
-  store i32 1, i32* %r11, align 4
-  %r12 = getelementptr i32, i32* %r4, i32 0
-  store i32 0, i32* %r12, align 4
-  ret i32 %r1
+r8:                                               ; preds = %r25, %0
+  %r11 = load i32, i32* %r5, align 4
+  %r12 = sub i32 0, 1
+  %r13 = icmp sgt i32 %r11, %r12
+  %r14 = zext i1 %r13 to i32
+  %r15 = icmp ne i32 %r14, 0
+  br i1 %r15, label %r9, label %r10
 
-1:                                                ; No predecessors!
-  br label %r10
+r9:                                               ; preds = %r8
+  %r16 = load i32, i32* %r5, align 4
+  %r17 = getelementptr i32, i32* %r1, i32 %r16
+  %r18 = load i32, i32* %r17, align 4
+  %r19 = load i32, i32* %r3, align 4
+  %r20 = icmp sgt i32 %r18, %r19
+  %r21 = zext i1 %r20 to i32
+  %r22 = icmp ne i32 %r21, 0
+  br i1 %r22, label %r23, label %r24
 
-r9:                                               ; preds = %0
-  %r13 = alloca i32, align 4
-  %r15 = srem i32 %r1, %r2
-  %r16 = getelementptr i32, i32* %r3, i32 0
-  %r17 = getelementptr i32, i32* %r4, i32 0
-  %r14 = call i32 @exgcd(i32 %r2, i32 %r15, i32* %r16, i32* %r17)
-  store i32 %r14, i32* %r13, align 4
-  %r18 = alloca i32, align 4
-  %r19 = getelementptr i32, i32* %r3, i32 0
-  %r20 = load i32, i32* %r19, align 4
-  store i32 %r20, i32* %r18, align 4
-  %r21 = getelementptr i32, i32* %r3, i32 0
-  %r22 = getelementptr i32, i32* %r4, i32 0
-  %r23 = load i32, i32* %r22, align 4
-  store i32 %r23, i32* %r21, align 4
-  %r24 = getelementptr i32, i32* %r4, i32 0
-  %r25 = load i32, i32* %r18, align 4
-  %r26 = sdiv i32 %r1, %r2
-  %r27 = getelementptr i32, i32* %r4, i32 0
+r23:                                              ; preds = %r9
+  %r26 = load i32, i32* %r5, align 4
+  %r27 = getelementptr i32, i32* %r1, i32 %r26
   %r28 = load i32, i32* %r27, align 4
-  %r29 = mul i32 %r26, %r28
-  %r30 = sub i32 %r25, %r29
-  store i32 %r30, i32* %r24, align 4
-  %r31 = load i32, i32* %r13, align 4
+  store i32 %r28, i32* %r3, align 4
+  br label %r25
+
+r24:                                              ; preds = %r9
+  br label %r25
+
+r25:                                              ; preds = %r24, %r23
+  %r29 = load i32, i32* %r5, align 4
+  %r30 = sub i32 %r29, 1
+  store i32 %r30, i32* %r5, align 4
+  br label %r8
+
+r10:                                              ; preds = %r8
+  %r31 = load i32, i32* %r3, align 4
   ret i32 %r31
 
-2:                                                ; No predecessors!
-  br label %r10
-
-r10:                                              ; preds = %2, %1
+1:                                                ; No predecessors!
   ret i32 0
 }
 
 define dso_local i32 @main() {
-  %r32 = alloca i32, align 4
-  store i32 7, i32* %r32, align 4
-  %r33 = alloca i32, align 4
-  store i32 15, i32* %r33, align 4
-  %r34 = alloca [1 x i32], align 4
-  %r_for_memset35 = getelementptr [1 x i32], [1 x i32]* %r34, i32 0, i32 0
-  call void @memset(i32* %r_for_memset35, i32 0, i32 4)
-  %r36 = getelementptr [1 x i32], [1 x i32]* %r34, i32 0, i32 0
-  store i32 1, i32* %r36, align 4
-  %r37 = alloca [1 x i32], align 4
-  %r_for_memset38 = getelementptr [1 x i32], [1 x i32]* %r37, i32 0, i32 0
-  call void @memset(i32* %r_for_memset38, i32 0, i32 4)
-  %r39 = getelementptr [1 x i32], [1 x i32]* %r37, i32 0, i32 0
-  store i32 1, i32* %r39, align 4
-  %r41 = load i32, i32* %r32, align 4
-  %r42 = load i32, i32* %r33, align 4
-  %r43 = getelementptr [1 x i32], [1 x i32]* %r34, i32 0, i32 0
-  %r44 = getelementptr [1 x i32], [1 x i32]* %r37, i32 0, i32 0
-  %r40 = call i32 @exgcd(i32 %r41, i32 %r42, i32* %r43, i32* %r44)
-  %r45 = getelementptr [1 x i32], [1 x i32]* %r34, i32 0, i32 0
-  %r46 = getelementptr [1 x i32], [1 x i32]* %r34, i32 0, i32 0
-  %r47 = load i32, i32* %r46, align 4
-  %r48 = load i32, i32* %r33, align 4
-  %r49 = srem i32 %r47, %r48
-  %r50 = load i32, i32* %r33, align 4
-  %r51 = add i32 %r49, %r50
-  %r52 = load i32, i32* %r33, align 4
-  %r53 = srem i32 %r51, %r52
-  store i32 %r53, i32* %r45, align 4
-  %r54 = getelementptr [1 x i32], [1 x i32]* %r34, i32 0, i32 0
-  %r55 = load i32, i32* %r54, align 4
-  call void @putint(i32 %r55)
+  %r32 = alloca [3 x i32], align 4
+  %r_for_memset33 = getelementptr [3 x i32], [3 x i32]* %r32, i32 0, i32 0
+  call void @memset(i32* %r_for_memset33, i32 0, i32 12)
+  %r34 = getelementptr [3 x i32], [3 x i32]* %r32, i32 0, i32 0
+  %r35 = sub i32 0, 2
+  store i32 %r35, i32* %r34, align 4
+  %r36 = getelementptr [3 x i32], [3 x i32]* %r32, i32 0, i32 1
+  store i32 2, i32* %r36, align 4
+  %r37 = getelementptr [3 x i32], [3 x i32]* %r32, i32 0, i32 2
+  %r38 = sub i32 0, 7
+  store i32 %r38, i32* %r37, align 4
+  %r39 = alloca i32, align 4
+  %r41 = getelementptr [3 x i32], [3 x i32]* %r32, i32 0, i32 0
+  %r40 = call i32 @_getMaxOfAll(i32* %r41, i32 3)
+  %r42 = getelementptr [3 x i32], [3 x i32]* %r32, i32 0, i32 %r40
+  %r43 = load i32, i32* %r42, align 4
+  store i32 %r43, i32* %r39, align 4
+  %r44 = load i32, i32* %r39, align 4
+  call void @putint(i32 %r44)
   ret i32 0
 
 1:                                                ; No predecessors!

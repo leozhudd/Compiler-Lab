@@ -9,11 +9,10 @@ import java.io.*;
 public class Test {
     public static void main(String[] args) {
 
-        // System.out.println(Visitor.splitArrayType("[99999 x [99999 x i32]]"));
         try {
             // 将标准的输出重定向到ps输出流
-            PrintStream ps = new PrintStream(new FileOutputStream(args[1]));
-            System.setOut(ps);
+            // PrintStream ps = new PrintStream(new FileOutputStream(args[1]));
+            // System.setOut(ps);
 
             // ANTLRInputStream input = new ANTLRInputStream(System.in);// ANTLRInputStream已经弃用，用CharStream代替
             CharStream input = CharStreams.fromFileName(args[0]);

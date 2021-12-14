@@ -951,17 +951,6 @@ public class Visitor extends SysYBaseVisitor<String> {
         }
     }
 
-//    public static boolean arrayAsParam(String exp) {
-//        int len = exp.length();
-//        boolean flag1 = false, flag2 = false, flag3 = false;
-//        for(int i=len-1;i>=0;i--) {
-//            if(exp.charAt(i) == ']') flag1 = true;
-//            if(flag1 && exp.charAt(i) == '[') flag2 = true;
-//            if(flag1 && flag2 && exp.charAt(i) == ']') flag3 = true;
-//        }
-//        if(flag1 && flag2 && !flag3)
-//    }
-
     @Override
     public String visitFuncRParams(SysYParser.FuncRParamsContext ctx) {
         StringBuilder tmp = new StringBuilder("");
@@ -969,13 +958,9 @@ public class Visitor extends SysYBaseVisitor<String> {
         for(SysYParser.ExpContext exp: ctx.exp()){
             if(!first) tmp.append(", ");
             first = false;
-            // if(arrayAsParam(exp.getText())) {
-                funcCallFlag = true;
-           // }
+            funcCallFlag = true;
             String exp_result = visit(exp);
             funcCallFlag = false;
-//            System.out.println("FuncCallingType: "+funcCallingType);
-//            System.out.println("value_result: "+exp_result);
             tmp.append(funcCallingType).append(" ").append(exp_result);
         }
         return tmp.toString();

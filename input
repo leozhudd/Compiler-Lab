@@ -1,18 +1,9 @@
-void set1(int pos, int arr[]) {
-    arr[pos] = 1;
+void foo(int arr[][5]) {
+    int t = arr[0][0];
 }
 
 int main() {
     int a[2][5];
-    int n;
-    n = getarray(a[0]);
-    getarray(a[1]);
-    int i = 0;
-    while (i < n) {
-        set1(i, a[i % 2]);
-        i = i + 1;
-    }
-    putarray(n, a[0]);
-    putarray(n, a[1]);
+    foo(a);
     return 0;
 }

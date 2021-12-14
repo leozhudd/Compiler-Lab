@@ -750,6 +750,14 @@ public class Visitor extends SysYBaseVisitor<String> {
                 String elm_reg = "%r" + regId++;
                 System.out.print("    " + elm_reg + " = getelementptr ");
                 System.out.print(val.arrayType + ", ");
+                System.out.println("array is param? "+val.isParam);
+                System.out.println("array type? "+val.arrayType);
+                System.out.println("array dim? "+val.arrayDim.toString());
+                System.out.println("exp size? "+ctx.exp().size());
+                System.out.println("exp result size? "+expResults.size());
+                for(String exp: expResults) {
+                    System.out.println("this exp result = " + exp);
+                }
                 if(val.isParam)
                     System.out.print(val.arrayType + "* " + val.reg);
                 else

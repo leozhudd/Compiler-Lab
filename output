@@ -6,51 +6,19 @@ declare void @putch(i32)
 declare i32 @getarray(i32*)
 declare void @putarray(i32, i32*)
 
-define dso_local void @set1(i32 %r1, i32* %r2) {
-    %r3 = alloca i32
-    store i32 %r1, i32* %r3
+define dso_local void @foo([5 x i32]* %r1) {
+    %r2 = alloca i32
+    %r3 = getelementptr [5 x i32], [5 x i32]* %r1, i32 0, i32 0
     %r4 = load i32, i32* %r3
-    %r5 = getelementptr i32, i32* %r2, i32 %r4
-    store i32 1, i32* %r5
+    store i32 %r4, i32* %r2
     ret void
 }
 define dso_local i32 @main() {
-    %r6 = alloca [2 x [5 x i32]]
-    %r_for_memset7 = getelementptr [2 x [5 x i32]], [2 x [5 x i32]]* %r6, i32 0, i32 0, i32 0
-    call void @memset(i32* %r_for_memset7, i32 0, i32 40)
-    %r8 = alloca i32
-    %r10 = getelementptr [2 x [5 x i32]], [2 x [5 x i32]]* %r6, i32 0, i32 0, i32 0
-    %r9 = call i32 @getarray(i32* %r10)
-    store i32 %r9, i32* %r8
-    %r12 = getelementptr [2 x [5 x i32]], [2 x [5 x i32]]* %r6, i32 1, i32 0, i32 0
-    %r11 = call i32 @getarray(i32* %r12)
-    %r13 = alloca i32
-    store i32 0, i32* %r13
-    br label %r14
-r14:
-    %r17 = load i32, i32* %r13
-    %r18 = load i32, i32* %r8
-    %r19 = icmp slt i32 %r17, %r18
-    %r20 = zext i1 %r19 to i32
-    %r21 = icmp ne i32 %r20, 0
-    br i1 %r21, label %r15, label %r16
-r15:
-    %r22 = load i32, i32* %r13
-    %r23 = load i32, i32* %r13
-    %r24 = srem i32 %r23, 2
-    %r25 = getelementptr [2 x [5 x i32]], [2 x [5 x i32]]* %r6, i32 %r24, i32 0, i32 0
-    call void @set1(i32 %r22, i32* %r25)
-    %r26 = load i32, i32* %r13
-    %r27 = add i32 %r26, 1
-    store i32 %r27, i32* %r13
-    br label %r14
-r16:
-    %r28 = load i32, i32* %r8
-    %r29 = getelementptr [2 x [5 x i32]], [2 x [5 x i32]]* %r6, i32 0, i32 0, i32 0
-    call void @putarray(i32 %r28, i32* %r29)
-    %r30 = load i32, i32* %r8
-    %r31 = getelementptr [2 x [5 x i32]], [2 x [5 x i32]]* %r6, i32 1, i32 0, i32 0
-    call void @putarray(i32 %r30, i32* %r31)
+    %r5 = alloca [2 x [5 x i32]]
+    %r_for_memset6 = getelementptr [2 x [5 x i32]], [2 x [5 x i32]]* %r5, i32 0, i32 0, i32 0
+    call void @memset(i32* %r_for_memset6, i32 0, i32 40)
+    %r7 = getelementptr [2 x [5 x i32]], [2 x [5 x i32]]* %r5, i32 0, i32 0
+    call void @foo([5 x i32]* %r7)
     ret i32 0
 ret i32 0
 }

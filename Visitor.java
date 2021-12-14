@@ -17,11 +17,6 @@ public class Visitor extends SysYBaseVisitor<String> {
     // compUnit: (decl | funcDef)+
     @Override
     public String visitCompUnit(SysYParser.CompUnitContext ctx) {
-
-        // 骗数据
-        System.out.println(ctx.getText());
-        System.out.println();
-
         System.out.println("declare void @memset(i32*, i32, i32)");
         System.out.println("declare i32 @getint()");
         System.out.println("declare void @putint(i32)");
@@ -451,10 +446,10 @@ public class Visitor extends SysYBaseVisitor<String> {
 
         visit(ctx.block()); // 访问函数体了！
         if(ctx.funcType().VOID()!=null) System.out.println("    ret void");
+        else System.out.println("ret i32 0");
         System.out.println("}");
         // 全局符号表中保存函数名和函数信息
         assignMap.put(funcName, new Variable(funcName, ctx.funcType().VOID()!=null, Integer.parseInt(param_length)));
-
         return null;
     }
 
@@ -671,19 +666,22 @@ public class Visitor extends SysYBaseVisitor<String> {
                     String tmp = funcCallingType;
                     expResults.add(visit(e));
                     funcCallingType = tmp;
-                    System.out.println("START TYPE: "+funcCallingType);
-                    System.out.println("arrayType: "+val.arrayType);
+//                    System.out.println("START TYPE: "+funcCallingType);
+//                    System.out.println("arrayType: "+val.arrayType);
+//                    System.out.println("name is "+val.name);
+//                    System.out.println("exp is "+e.getText());
+//                    System.out.println("callingFlag "+funcCallFlag);
                     funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
-                    System.out.println("AFTER TYPE: "+funcCallingType);
+                    // System.out.println("AFTER TYPE: "+funcCallingType);
                 }
                 if(!val.isParam && funcCallingType.length()>5) { // 传数组时，维度统一需要-1（如果数组原本就是参数，则不用降维）
                     funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
                     funcCallingType += "*";
                 }
-                if(val.isParam && funcCallingType.length()>3) {
+                if(val.isParam) {
                     funcCallingType += "*";
                 }
-                System.out.println("FINAL TYPE: "+funcCallingType);
+                // System.out.println("FINAL TYPE: "+funcCallingType);
 
                 String elm_reg = "%r" + regId++;
                 System.out.print("    " + elm_reg + " = getelementptr ");
@@ -875,6 +873,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                         System.out.println("    " + reg + " = call i32 @" + val.name + "()");
                     else
                         System.out.println("    " + reg + " = call i32 @" + val.name + "(" + visit(ctx.funcRParams()) + ")");
+                    funcCallFlag = false;
                     return reg;
                 }
                 else { // 没有返回值
@@ -883,7 +882,6 @@ public class Visitor extends SysYBaseVisitor<String> {
                     else
                         System.out.println("    call void @" + val.name + "(" + visit(ctx.funcRParams()) + ")");
                 }
-
             }
             funcCallFlag = false;
             return null;

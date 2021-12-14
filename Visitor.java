@@ -684,6 +684,7 @@ public class Visitor extends SysYBaseVisitor<String> {
         if(val == null) System.exit(-1);
         if(val.arrayType != null) { // 如果是数组
             // TODO: 访问数组的exp可以为0，例如func(arr)，把arr整体读出来
+            System.out.println("funcCallFlagNow: "+funcCallFlag);
             if(funcCallFlag) { // 在函数调用时访问数组
                 if(val.arrayDim.size() < ctx.exp().size()) { // 访问的维度超了，直接退出
                     System.exit(-1);

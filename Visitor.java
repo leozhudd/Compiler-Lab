@@ -671,8 +671,11 @@ public class Visitor extends SysYBaseVisitor<String> {
                     funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
                     // System.out.println("AFTER TYPE: "+funcCallingType);
                 }
-                if(funcCallingType.length()>3) { // 传数组时，维度统一需要-1
+                if(!val.isParam && funcCallingType.length()>3) { // 传数组时，维度统一需要-1（如果数组原本就是参数，则不用降维）
                     funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
+                    funcCallingType += "*";
+                }
+                if(val.isParam && funcCallingType.length()>3) {
                     funcCallingType += "*";
                 }
                 // System.out.println("FINAL TYPE: "+funcCallingType);
@@ -688,7 +691,8 @@ public class Visitor extends SysYBaseVisitor<String> {
                 // TODO: 如果传的是arr本身，那么需要两个i32 0就可以降一维
                 // if(ctx.exp().size() == 0) { // 没有exp->是本身
                 if(val.arrayDim.size() != ctx.exp().size()) { // 如果数组最后还是数组
-                    System.out.println(", i32 0, i32 0");
+                    if(val.isParam) System.out.println(", i32 0");
+                    else System.out.println(", i32 0, i32 0");
                     return elm_reg;
                 }
                 else { // 如果数组退化成了int

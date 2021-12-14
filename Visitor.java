@@ -676,8 +676,8 @@ public class Visitor extends SysYBaseVisitor<String> {
                     String tmp = funcCallingType;
                     expResults.add(visit(e));
                     funcCallingType = tmp;
-//                    System.out.println("START TYPE: "+funcCallingType);
-//                    System.out.println("arrayType: "+val.arrayType);
+                    System.out.println("START TYPE: "+funcCallingType);
+                    System.out.println("arrayType: "+val.arrayType);
 //                    System.out.println("name is "+val.name);
 //                    System.out.println("exp is "+e.getText());
 //                    System.out.println("callingFlag "+funcCallFlag);
@@ -685,7 +685,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                         funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
                     else
                         noStarFlag = true;
-                    // System.out.println("AFTER TYPE: "+funcCallingType);
+                    System.out.println("AFTER TYPE: "+funcCallingType);
                 }
                 if(!val.isParam && funcCallingType.length()>5) { // 传数组时，维度统一需要-1（如果数组原本就是参数，则不用降维）
                     funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
@@ -694,7 +694,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                 if(val.isParam && !noStarFlag) {
                     funcCallingType += "*";
                 }
-                // System.out.println("FINAL TYPE: "+funcCallingType);
+                System.out.println("FINAL TYPE: "+funcCallingType);
 
                 String elm_reg = "%r" + regId++;
                 System.out.print("    " + elm_reg + " = getelementptr ");
@@ -929,6 +929,8 @@ public class Visitor extends SysYBaseVisitor<String> {
             first = false;
 
             String exp_result = visit(exp);
+            System.out.println("FuncCallingType: "+funcCallingType);
+            System.out.println("value_result: "+exp_result);
             tmp.append(funcCallingType).append(" ").append(exp_result);
         }
         return tmp.toString();

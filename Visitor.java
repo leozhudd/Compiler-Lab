@@ -671,6 +671,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                 }
                 ArrayList<String>expResults = new ArrayList<>();
                 funcCallingType = val.arrayType;
+                boolean noStarFlag = false;
                 for(SysYParser.ExpContext e: ctx.exp()) { // 有一层取值，维度就-1，例如arr[1]就是arr的维度-1
                     String tmp = funcCallingType;
                     expResults.add(visit(e));
@@ -680,14 +681,17 @@ public class Visitor extends SysYBaseVisitor<String> {
 //                    System.out.println("name is "+val.name);
 //                    System.out.println("exp is "+e.getText());
 //                    System.out.println("callingFlag "+funcCallFlag);
-                    funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
+                    if(funcCallingType.length()>5)
+                        funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
+                    else
+                        noStarFlag = true;
                     // System.out.println("AFTER TYPE: "+funcCallingType);
                 }
                 if(!val.isParam && funcCallingType.length()>5) { // 传数组时，维度统一需要-1（如果数组原本就是参数，则不用降维）
                     funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
                     funcCallingType += "*";
                 }
-                if(val.isParam) {
+                if(val.isParam && !noStarFlag) {
                     funcCallingType += "*";
                 }
                 // System.out.println("FINAL TYPE: "+funcCallingType);

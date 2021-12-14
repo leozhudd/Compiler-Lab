@@ -9,32 +9,14 @@ target triple = "x86_64-apple-macosx10.14.0"
 @.str.3 = private unnamed_addr constant [4 x i8] c" %d\00", align 1
 @.str.4 = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
 
-define dso_local i32 @sum2d(i32 %r1) {
-  ret i32 %r1
-}
-
 define dso_local i32 @main() {
-  %r2 = alloca [2 x [3 x i32]], align 4
-  %r_for_memset3 = getelementptr [2 x [3 x i32]], [2 x [3 x i32]]* %r2, i32 0, i32 0, i32 0
-  call void @memset(i32* %r_for_memset3, i32 0, i32 24)
-  %r4 = getelementptr [2 x [3 x i32]], [2 x [3 x i32]]* %r2, i32 0, i32 0, i32 0
-  store i32 1, i32* %r4, align 4
-  %r5 = getelementptr [2 x [3 x i32]], [2 x [3 x i32]]* %r2, i32 0, i32 0, i32 1
-  store i32 2, i32* %r5, align 4
-  %r6 = getelementptr [2 x [3 x i32]], [2 x [3 x i32]]* %r2, i32 0, i32 0, i32 2
-  store i32 3, i32* %r6, align 4
-  %r7 = getelementptr [2 x [3 x i32]], [2 x [3 x i32]]* %r2, i32 0, i32 1, i32 0
-  store i32 4, i32* %r7, align 4
-  %r8 = getelementptr [2 x [3 x i32]], [2 x [3 x i32]]* %r2, i32 0, i32 1, i32 1
-  store i32 5, i32* %r8, align 4
-  %r10 = getelementptr [2 x [3 x i32]], [2 x [3 x i32]]* %r2, i32 0, i32 0, i32 0
-  %r11 = load i32, i32* %r10, align 4
-  %r9 = call i32 @sum2d(i32 %r11)
-  call void @putint(i32 %r9)
+  %r1 = alloca i32, align 4
+  store i32 1, i32* %r1, align 4
+  %r2 = load i32, i32* %r1, align 4
+  %r3 = alloca i32, align 4
+  store i32 %r2, i32* %r3, align 4
   ret i32 0
 }
-
-declare void @memset(i32*, i32, i32)
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable
 define dso_local i32 @getint() #0 {

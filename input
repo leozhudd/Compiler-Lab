@@ -1,10 +1,5 @@
-int sum2d(int a[]) {
-    a[0] = 999;
-    return a[0];
-}
-
 int main() {
-    int arr[2][3] = {{1, 2, 3}, {4, 5}};
-    putint(sum2d(arr[0][0][0]));
+    int a = 1;
+    const int b = a;
     return 0;
 }

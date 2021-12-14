@@ -1,5 +1,18 @@
+int sum2d(int a[][3]) {
+    int i = 0, sum = 0;
+    while (i < 2) {
+        int j = 0;
+        while (j < 3) {
+            sum = sum + a[i][j];
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+    return sum;
+}
+
 int main() {
-    int a = 1;
-    const int b = a;
+    int arr[2][3] = {{1, 2, 3}, {4, 5}};
+    putint(sum2d(arr));
     return 0;
 }

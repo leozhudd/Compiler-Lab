@@ -662,17 +662,20 @@ public class Visitor extends SysYBaseVisitor<String> {
                 }
                 ArrayList<String>expResults = new ArrayList<>();
                 funcCallingType = val.arrayType;
-                System.out.println("START TYPE: "+funcCallingType);
                 for(SysYParser.ExpContext e: ctx.exp()) { // 有一层取值，维度就-1，例如arr[1]就是arr的维度-1
+                    String tmp = funcCallingType;
                     expResults.add(visit(e));
+                    funcCallingType = tmp;
+                    // System.out.println("START TYPE: "+funcCallingType);
+                    // System.out.println("arrayType: "+val.arrayType);
                     funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
-                    System.out.println("AFTER TYPE: "+funcCallingType);
+                    // System.out.println("AFTER TYPE: "+funcCallingType);
                 }
                 if(funcCallingType.length()>3) { // 传数组时，维度统一需要-1
                     funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
                     funcCallingType += "*";
                 }
-                System.out.println("FINAL TYPE: "+funcCallingType);
+                // System.out.println("FINAL TYPE: "+funcCallingType);
 
                 String elm_reg = "%r" + regId++;
                 System.out.print("    " + elm_reg + " = getelementptr ");
@@ -852,7 +855,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                     }
                 }
                 if(val == null) System.exit(-1);
-                if(ctx.funcRParams().exp().size() != val.param_length) {
+                if(ctx.funcRParams()!=null && ctx.funcRParams().exp().size() != val.param_length) {
                     System.exit(-1);
                 }
 

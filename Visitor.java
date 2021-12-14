@@ -676,7 +676,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                     funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
                     System.out.println("AFTER TYPE: "+funcCallingType);
                 }
-                if(!val.isParam && funcCallingType.length()>3) { // 传数组时，维度统一需要-1（如果数组原本就是参数，则不用降维）
+                if(!val.isParam && funcCallingType.length()>5) { // 传数组时，维度统一需要-1（如果数组原本就是参数，则不用降维）
                     funcCallingType = funcCallingType.substring(5, funcCallingType.length()-1);
                     funcCallingType += "*";
                 }

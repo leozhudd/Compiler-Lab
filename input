@@ -1,24 +1,22 @@
-int _getMaxOfAll(int result[],int size){
-    int maxNum;
-    maxNum=-999999;
-
-    size=size-1;
-    while(size>-1){
-        if(result[size]>maxNum){
-            maxNum=result[size];
-        }
-        size=size-1;
+int exgcd(int a, int b, int x[], int y[]){
+    if(b==0){
+        x[0]=1;
+        y[0]=0;
+        return a;
     }
-    return maxNum;
+    else{
+        int r=exgcd(b,a%b,x,y);
+        int t=x[0];
+        x[0]=y[0];
+        y[0]=(t-a/b*y[0]);
+        return r;
+    }
 }
 
 int main(){
-    int result[3];
-    result[0]=-2;
-    result[1]=2;
-    result[2]=-7;
-    int x;
-    x=result[_getMaxOfAll(result,3)];
-    putint(x);
+    int a=7,b=15,x[1]={1},y[1]={1};
+    exgcd(a,b,x,y);
+    x[0]=(x[0]%b+b)%b;
+    putint(x[0]);
     return 0;
 }

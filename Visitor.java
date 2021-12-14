@@ -516,6 +516,15 @@ public class Visitor extends SysYBaseVisitor<String> {
         Map<String,Variable> assignMap = new HashMap<>(); // 声明这个block的符号表
         while(!addToAssignMapWhenBlock.empty()) {
             Variable v = addToAssignMapWhenBlock.pop();
+
+            if(v.isParam && v.arrayType==null) { // 如果是参数变量（不是数组），就创建一个变量来保存它
+                String ptr_reg = "%r" + regId++;
+                System.out.println("    " + ptr_reg + " = alloca i32");
+                System.out.println("    store i32 " + v.reg + ", i32* " + ptr_reg);
+                v.isParam = false;
+                v.reg = ptr_reg;
+            }
+
             assignMap.put(v.name, v);
         }
 
@@ -737,13 +746,6 @@ public class Visitor extends SysYBaseVisitor<String> {
                 funcCallingType = "i32";
             }
             if(!globalFlag) {
-                if(val.isParam) {
-                    String ptr_reg = "%r" + regId++;
-                    System.out.println("    " + ptr_reg + " = alloca i32");
-                    System.out.println("    store i32 " + val.reg + ", i32* " + ptr_reg);
-                    val.isParam = false;
-                    val.reg = ptr_reg;
-                }
                 String target_reg = "%r" + regId++;
                 System.out.println("    " + target_reg + " = load i32, i32* " + val.reg);
                 return target_reg;

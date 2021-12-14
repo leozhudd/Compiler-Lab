@@ -25,6 +25,8 @@ public class Visitor extends SysYBaseVisitor<String> {
         System.out.println("declare i32 @getarray(i32*)");
         System.out.println("declare void @putarray(i32, i32*)");
         System.out.println();
+        funcCallFlag = false;
+        arrayFlag = false;
         /*
         先压一个栈，代表全局变量的符号表
         此处的decl模块都是全局变量定义，需一直保持globalFlag=true
@@ -867,6 +869,7 @@ public class Visitor extends SysYBaseVisitor<String> {
         else if(ctx.Ident() != null) { // 调用函数
             funcCallFlag = true;
             String func = ctx.Ident().getText();
+            System.out.println("Func call flag is true with "+func);
 
             // TODO: 这里没有考虑函数名和putint/getint等库函数冲突的问题
             if(func.equals("getint") && ctx.funcRParams() == null) {

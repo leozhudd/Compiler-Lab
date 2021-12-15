@@ -732,15 +732,18 @@ public class Visitor extends SysYBaseVisitor<String> {
                 System.out.print("    " + elm_reg + " = getelementptr ");
                 System.out.print(val.arrayType + ", ");
                 System.out.print(val.arrayType + "* " + val.reg);
+
+                if(!val.isParam && val.arrayDim.size() != ctx.exp().size()) {
+                    System.out.println(", i32 0");
+                }
+
                 for(String exp: expResults) {
                     System.out.print(", i32 " + exp);
                 }
 
                 // TODO: 如果传的是arr本身，那么需要两个i32 0就可以降一维
-                // if(ctx.exp().size() == 0) { // 没有exp->是本身
                 if(val.arrayDim.size() != ctx.exp().size()) { // 如果数组最后还是数组
-                    if(val.isParam) System.out.println(", i32 0");
-                    else System.out.println(", i32 0, i32 0");
+                    System.out.println(", i32 0");
                     return elm_reg;
                 }
                 else { // 如果数组退化成了int

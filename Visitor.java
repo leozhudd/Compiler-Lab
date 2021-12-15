@@ -734,6 +734,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                 System.out.print(val.arrayType + "* " + val.reg);
 
                 if(!val.isParam && val.arrayDim.size() != ctx.exp().size()) {
+                    // 如果数组最后还是数组，并且数组不是这个函数的参数（是函数体内定义的）
                     System.out.println(", i32 0");
                 }
 
@@ -741,7 +742,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                     System.out.print(", i32 " + exp);
                 }
 
-                // TODO: 如果传的是arr本身，那么需要两个i32 0就可以降一维
+                // TODO: 如果传的是arr本身，需要用一个i32 0降一维
                 if(val.arrayDim.size() != ctx.exp().size()) { // 如果数组最后还是数组
                     System.out.println(", i32 0");
                     return elm_reg;

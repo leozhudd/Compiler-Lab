@@ -18,8 +18,8 @@ public class Visitor extends SysYBaseVisitor<String> {
     @Override
     public String visitCompUnit(SysYParser.CompUnitContext ctx) {
 
-        System.out.println(ctx.getText());
-        System.out.println();
+        // System.out.println(ctx.getText());
+        // System.out.println();
 
         System.out.println("declare void @memset(i32*, i32, i32)");
         System.out.println("declare i32 @getint()");
@@ -69,7 +69,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                 String ptr_reg = "%r" + regId++;
                 System.out.println("    " + ptr_reg + " = alloca i32");
                 System.out.println("    store i32 " + value + ", i32* " + ptr_reg);
-                assignMap.put(name, new Variable(name, ptr_reg, true, true));
+                assignMap.put(name, new Variable(name, ptr_reg, true, true, Integer.parseInt(value)));
             }
             else { // 全局变量，不需要alloca
                 System.out.println("@" + name + " = dso_local global i32 " + value);
@@ -287,7 +287,10 @@ public class Visitor extends SysYBaseVisitor<String> {
                 // 遍历每个维度的长度，例如a[4][5]的[4]和[5]
                 StringBuilder arrayType = new StringBuilder();
                 for(SysYParser.ConstExpContext e: ctx.constExp()) {
+                    // globalFlag = true;
                     String len = visit(e); // 数组的各维长度必须是编译时可求值的【非负】【常量表达式】。
+                    // globalFlag = false;
+                    // System.out.println("array_len_: "+len);
                     if(len.startsWith("-")) {
                         System.exit(-1);
                     }
@@ -688,6 +691,9 @@ public class Visitor extends SysYBaseVisitor<String> {
             }
         }
         if(val == null) System.exit(-1);
+//        System.out.println("val = "+val.name);
+//        System.out.println("val.reg = "+val.reg);
+//        System.out.println("val.value = "+val.value);
         if(val.arrayType != null) { // 如果是数组
             // TODO: 访问数组的exp可以为0，例如func(arr)，把arr整体读出来
             if(val.arrayDim.size() < ctx.exp().size()) { // 访问的维度超了，直接退出
@@ -788,7 +794,7 @@ public class Visitor extends SysYBaseVisitor<String> {
                 System.out.println("    " + target_reg + " = load i32, i32* " + val.reg);
                 return target_reg;
             }
-            else { // 全局变量，表达式压缩
+            else { // 全局变量，表达式压缩【或】数组声明访问每维长度时，切换globalflag=true，就会只能访问【常量表达式】
                 if(val.isConst) {
                     return String.valueOf(val.value);
                 }
@@ -831,7 +837,6 @@ public class Visitor extends SysYBaseVisitor<String> {
                 int res = Integer.parseInt(a) + Integer.parseInt(b);
                 return String.valueOf(res);
             }
-
         }
         else return visit(ctx.mulExp());
     }

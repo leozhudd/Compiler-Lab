@@ -16,7 +16,8 @@ int main(){
     // putint(e[0][0][0]);
     // putint(e[0][1][0]);
     // putint(d[3][0]);
-    // putint(a[3][1]);
+    // 问题：数组长度定义exp中无法识别常量N
+    
 
     return 0;
 }

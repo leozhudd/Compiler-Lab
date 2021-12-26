@@ -14,6 +14,9 @@ public class Visitor extends SysYBaseVisitor<String> {
     private boolean funcCallFlag = false;
     private String funcCallingType = "";
 
+    private Stack<String> condTrue = new Stack<>(); // 存储条件成立对应的跳转标号
+    private Stack<String> condFalse = new Stack<>(); // 存储条件不成立对应的跳转标号
+
     // compUnit: (decl | funcDef)+
     @Override
     public String visitCompUnit(SysYParser.CompUnitContext ctx) {
@@ -607,11 +610,18 @@ public class Visitor extends SysYBaseVisitor<String> {
             visit(ctx.block());
         }
         else if(ctx.IF() != null) { // IF-ELSE
-            String cond_reg = visit(ctx.cond());
+            // 「挑战实验」短路求值
             String true_reg = "%r" + regId++;
             String false_reg = "%r" + regId++;
+            condTrue.push(true_reg);
+            condFalse.push(false_reg);
+
+            String cond_reg = visit(ctx.cond());
             String end_reg = "%r" + regId++;
-            System.out.println("    br i1 " + cond_reg + ", label " + true_reg + ", label " + false_reg);
+
+            String cond_result = "%r" + regId++;
+            System.out.println("    " + cond_result + " = icmp ne i32 " + cond_reg + ", 0");
+            System.out.println("    br i1 " + cond_result + ", label " + true_reg + ", label " + false_reg);
 
             // TRUE-BLOCK
             System.out.println(true_reg.substring(1) + ":");
@@ -624,8 +634,8 @@ public class Visitor extends SysYBaseVisitor<String> {
                 visit(ctx.stmt(1));
             }
             System.out.println("    br label " + end_reg);
-
-            // END-BLOCK
+//
+//            // END-BLOCK
             System.out.println(end_reg.substring(1) + ":");
         }
         else if(ctx.WHILE() != null) { // While
@@ -1037,7 +1047,6 @@ public class Visitor extends SysYBaseVisitor<String> {
                     System.out.println("    " + reg_i32 + " = zext i1 " + reg + " to i32");
                     break;
             }
-            if_unary_flag = false;
             return reg_i32;
         }
     }
@@ -1063,7 +1072,6 @@ public class Visitor extends SysYBaseVisitor<String> {
                     System.out.println("    " + reg_i32 + " = zext i1 " + reg + " to i32");
                     break;
             }
-            if_unary_flag = false;
             return reg_i32;
         }
     }
@@ -1071,29 +1079,66 @@ public class Visitor extends SysYBaseVisitor<String> {
     @Override
     public String visitLAndExp(SysYParser.LAndExpContext ctx) {
         if(ctx.lAndExp() == null) {
-            return visit(ctx.eqExp());
+            String eqExpVal = visit(ctx.eqExp());
+            String res_reg = "%r" + regId++;
+            System.out.println("    " + res_reg + " = icmp ne i32 " + eqExpVal + ", 0");
+            System.out.println("    br i1 " + res_reg + ", label " + condTrue.pop() + ", label " + condFalse.pop());
+            return res_reg;
+
+//            if(ifCondFlag) {
+//                String res_reg = "%r" + regId++;
+//                String next_label_reg = "%r" + regId++;
+//                System.out.println(res_reg + " = icmp ne i32 " + eqExpVal + ", 0");
+//                System.out.println("br i1 " + res_reg + ", label " + next_label_reg + ", label " + ifCondFalseReg);
+//                System.out.println();
+//                System.out.println(next_label_reg.substring(1) + ":");
+//                return res_reg;
+//            }
+//            return eqExpVal;
         }
         else {
-            // 把a和b从i32转换到i1，然后执行and，最后把结果转换回i32！
-            String reg_a = visit(ctx.lAndExp());
-            String reg_a_i1 = "%r" + regId++;
-            System.out.println("    " + reg_a_i1 + " = icmp ne i32 " + reg_a + ", 0");
+//            if(!ifCondFlag) { // 没有短路求值
+//                // 把a和b从i32转换到i1，然后执行and，最后把结果转换回i32！
+//                String reg_a = visit(ctx.lAndExp());
+//                String reg_a_i1 = "%r" + regId++;
+//                System.out.println("    " + reg_a_i1 + " = icmp ne i32 " + reg_a + ", 0");
+//
+//                String reg_b = visit(ctx.eqExp());
+//                String reg_b_i1 = "%r" + regId++;
+//                System.out.println("    " + reg_b_i1 + " = icmp ne i32 " + reg_b + ", 0");
+//
+//                String reg = "%r" + regId++;
+//                System.out.println("    " + reg + " = and i1 " + reg_a_i1 + ", " + reg_b_i1);
+//
+//                String reg_i32 = "%r" + regId++;
+//                System.out.println("    " + reg_i32 + " = zext i1 " + reg + " to i32");
+//
+//                return reg_i32;
+//            }
+            // 短路求值
+            String inner_land = "%r" + regId++;
+            condTrue.push(inner_land);
+            condFalse.push(condFalse.peek());
+            visit(ctx.lAndExp());
+            System.out.println("\n" + inner_land.substring(1) + ":");
 
-            String reg_b = visit(ctx.eqExp());
-            String reg_b_i1 = "%r" + regId++;
-            System.out.println("    " + reg_b_i1 + " = icmp ne i32 " + reg_b + ", 0");
-
-            String reg = "%r" + regId++;
-            System.out.println("    " + reg + " = and i1 " + reg_a_i1 + ", " + reg_b_i1);
-
-            String reg_i32 = "%r" + regId++;
-            System.out.println("    " + reg_i32 + " = zext i1 " + reg + " to i32");
-
-            if_unary_flag = false;
-            return reg_i32;
+            String eqExpVal = visit(ctx.eqExp());
+            return eqExpVal;
+//
+//
+//            visit(ctx.lAndExp());
+//            String eqExpVal = visit(ctx.eqExp());
+//            String res_reg = "%r" + regId++;
+//            String next_label_reg = "%r" + regId++;
+//            System.out.println(res_reg + " = icmp ne i32 " + eqExpVal + ", 0");
+//            System.out.println("br i1 " + res_reg + ", label " + next_label_reg + ", label " + ifCondFalseReg);
+//            System.out.println();
+//            System.out.println(next_label_reg.substring(1) + ":");
+//
+//            return res_reg;
         }
     }
-// TODO: 条件表达式短路求值【挑战实验】
+
     // lOrExp: lAndExp | lOrExp '||' lAndExp;
     @Override
     public String visitLOrExp(SysYParser.LOrExpContext ctx) {
@@ -1101,42 +1146,55 @@ public class Visitor extends SysYBaseVisitor<String> {
             return visit(ctx.lAndExp());
         }
         else {
-            // 把a和b从i32转换到i1，然后执行and，最后把结果转换回i32！
-            String reg_a = visit(ctx.lOrExp());
-            String reg_a_i1 = "%r" + regId++;
-            System.out.println("    " + reg_a_i1 + " = icmp ne i32 " + reg_a + ", 0");
+//            if(!ifCondFlag) {
+//                // 把a和b从i32转换到i1，然后执行and，最后把结果转换回i32！
+//                String reg_a = visit(ctx.lOrExp());
+//                String reg_a_i1 = "%r" + regId++;
+//                System.out.println("    " + reg_a_i1 + " = icmp ne i32 " + reg_a + ", 0");
+//
+//                String reg_b = visit(ctx.lAndExp());
+//                String reg_b_i1 = "%r" + regId++;
+//                System.out.println("    " + reg_b_i1 + " = icmp ne i32 " + reg_b + ", 0");
+//
+//                String reg = "%r" + regId++;
+//                System.out.println("    " + reg + " = or i1 " + reg_a_i1 + ", " + reg_b_i1);
+//
+//                String reg_i32 = "%r" + regId++;
+//                System.out.println("    " + reg_i32 + " = zext i1 " + reg + " to i32");
+//
+//                return reg_i32;
+//            }
+            // 短路求值
+            String inner_lor = "%r" + regId++;
+            condTrue.push(condTrue.peek());
+            condFalse.push(inner_lor);
 
-            String reg_b = visit(ctx.lAndExp());
-            String reg_b_i1 = "%r" + regId++;
-            System.out.println("    " + reg_b_i1 + " = icmp ne i32 " + reg_b + ", 0");
+            visit(ctx.lOrExp());
+            System.out.println("\n" + inner_lor.substring(1) + ":");
 
-            String reg = "%r" + regId++;
-            System.out.println("    " + reg + " = or i1 " + reg_a_i1 + ", " + reg_b_i1);
+            String andExpVal = visit(ctx.lAndExp());
 
-            String reg_i32 = "%r" + regId++;
-            System.out.println("    " + reg_i32 + " = zext i1 " + reg + " to i32");
+//
+//            String res_reg = "%r" + regId++;
+//            String next_label_reg = "%r" + regId++;
+//            System.out.println(res_reg + " = icmp ne i32 " + andExpVal + ", 0");
+//            System.out.println("br i1 " + res_reg + ", label " + ifCondTrueReg + ", label " + next_label_reg);
+//            System.out.println();
+//            System.out.println(next_label_reg.substring(1) + ":");
 
-            if_unary_flag = false;
-            return reg_i32;
+            return andExpVal;
         }
     }
 
-    // 特判if条件表达式中只含UnaryExp的情况
-    boolean if_unary_flag;
     @Override
     public String visitCond(SysYParser.CondContext ctx) {
-        if_unary_flag = true;
+        // TODO: 短路求值这里是否需要修改？
         String src_reg = visit(ctx.lOrExp());
-        if(if_unary_flag) {
-            String reg = "%r" + regId++;
-            System.out.println("    " + reg + " = icmp ne i32 " + src_reg + ", 0");
-            return reg;
-        }
-        else {
-            String reg_i1 = "%r" + regId++;
-            System.out.println("    " + reg_i1 + " = icmp ne i32 " + src_reg + ", 0");
-            return reg_i1;
-        }
+//        if(!ifCondFlag) {
+//            String reg = "%r" + regId++;
+//            System.out.println("    " + reg + " = icmp ne i32 " + src_reg + ", 0");
+//        }
+        return src_reg;
     }
 
     public static String hex2dec(String hex) {

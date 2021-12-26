@@ -28,22 +28,26 @@ r7:                                               ; preds = %0
   br i1 %r13, label %r4, label %r6
 
 r6:                                               ; preds = %r7, %0
-  %r14 = load i32, i32* %r3, align 4
-  %r15 = sub i32 %r14, 3
+  %r15 = load i32, i32* %r3, align 4
   %r16 = icmp ne i32 %r15, 0
-  br i1 %r16, label %r4, label %r5
+  br i1 %r16, label %r14, label %r5
 
-r4:                                               ; preds = %r6, %r7
-  %r18 = load i32, i32* %r1, align 4
-  call void @putint(i32 %r18)
-  br label %r17
+r14:                                              ; preds = %r6
+  %r17 = load i32, i32* %r2, align 4
+  %r18 = icmp ne i32 %r17, 0
+  br i1 %r18, label %r4, label %r5
 
-r5:                                               ; preds = %r6
-  br label %r17
+r4:                                               ; preds = %r14, %r7
+  %r20 = load i32, i32* %r1, align 4
+  call void @putint(i32 %r20)
+  br label %r19
 
-r17:                                              ; preds = %r5, %r4
-  %r19 = load i32, i32* %r2, align 4
-  call void @putint(i32 %r19)
+r5:                                               ; preds = %r14, %r6
+  br label %r19
+
+r19:                                              ; preds = %r5, %r4
+  %r21 = load i32, i32* %r2, align 4
+  call void @putint(i32 %r21)
   ret i32 0
 }
 

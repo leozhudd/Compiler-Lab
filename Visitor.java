@@ -1119,7 +1119,7 @@ public class Visitor extends SysYBaseVisitor<String> {
             System.out.println("\n" + inner_land.substring(1) + ":");
 
             String eqExpVal = visit(ctx.eqExp());
-            
+
             String eq_result = "%r" + regId++;
             System.out.println("    " + eq_result + " = icmp ne i32 " + eqExpVal + ", 0");
             System.out.println("    br i1 " + eq_result + ", label " + condTrue.pop() + ", label " + condFalse.pop());

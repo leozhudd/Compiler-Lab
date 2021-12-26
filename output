@@ -25,18 +25,22 @@ r7:
     br i1 %r13, label %r4, label %r6
 
 r6:
-    %r14 = load i32, i32* %r3
-    %r15 = sub i32 %r14, 3
+    %r15 = load i32, i32* %r3
     %r16 = icmp ne i32 %r15, 0
-    br i1 %r16, label %r4, label %r5
+    br i1 %r16, label %r14, label %r5
+
+r14:
+    %r17 = load i32, i32* %r2
+    %r18 = icmp ne i32 %r17, 0
+    br i1 %r18, label %r4, label %r5
 r4:
-    %r18 = load i32, i32* %r1
-    call void @putint(i32 %r18)
-    br label %r17
+    %r20 = load i32, i32* %r1
+    call void @putint(i32 %r20)
+    br label %r19
 r5:
-    br label %r17
-r17:
-    %r19 = load i32, i32* %r2
-    call void @putint(i32 %r19)
+    br label %r19
+r19:
+    %r21 = load i32, i32* %r2
+    call void @putint(i32 %r21)
 ret i32 0
 }

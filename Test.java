@@ -11,9 +11,15 @@ public class Test {
 
         try {
             // 将标准的输出重定向到ps输出流
-            PrintStream ps = new PrintStream(new FileOutputStream(args[1]));
-            System.setOut(ps);
+//            PrintStream ps = new PrintStream(new FileOutputStream(args[1]));
+//            System.setOut(ps);
+            BufferedReader br = new BufferedReader(new FileReader(args[0]));
+            String s = null;
+            while ((s = br.readLine()) != null) {//readLine()每次读取一行
+                System.out.println(s);
+            }
 
+/*
             // ANTLRInputStream input = new ANTLRInputStream(System.in);// ANTLRInputStream已经弃用，用CharStream代替
             CharStream input = CharStreams.fromFileName(args[0]);
             SysYLexer lexer = new SysYLexer(input);
@@ -21,7 +27,7 @@ public class Test {
 
             /* 使用Listener方法遍历语法树
             parser.addParseListener(new Listener());
-            parser.compUnit();*/
+            parser.compUnit();* /
 
             // 自定义错误分析器
             lexer.removeErrorListeners();
@@ -33,8 +39,8 @@ public class Test {
             ParseTree tree = parser.compUnit();
             Visitor visitor = new Visitor();
 
-            // System.out.println(visitor.visit(tree));
             visitor.visit(tree);
+*/
 
         } catch (IOException e) {
             e.printStackTrace();

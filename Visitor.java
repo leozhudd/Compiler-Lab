@@ -616,12 +616,8 @@ public class Visitor extends SysYBaseVisitor<String> {
             condTrue.push(true_reg);
             condFalse.push(false_reg);
 
-            String cond_reg = visit(ctx.cond());
+            visit(ctx.cond());
             String end_reg = "%r" + regId++;
-
-            String cond_result = "%r" + regId++;
-            System.out.println("    " + cond_result + " = icmp ne i32 " + cond_reg + ", 0");
-            System.out.println("    br i1 " + cond_result + ", label " + true_reg + ", label " + false_reg);
 
             // TRUE-BLOCK
             System.out.println(true_reg.substring(1) + ":");
@@ -1123,7 +1119,12 @@ public class Visitor extends SysYBaseVisitor<String> {
             System.out.println("\n" + inner_land.substring(1) + ":");
 
             String eqExpVal = visit(ctx.eqExp());
-            return eqExpVal;
+            
+            String eq_result = "%r" + regId++;
+            System.out.println("    " + eq_result + " = icmp ne i32 " + eqExpVal + ", 0");
+            System.out.println("    br i1 " + eq_result + ", label " + condTrue.pop() + ", label " + condFalse.pop());
+
+            return eq_result;
 //
 //
 //            visit(ctx.lAndExp());
@@ -1172,7 +1173,7 @@ public class Visitor extends SysYBaseVisitor<String> {
             visit(ctx.lOrExp());
             System.out.println("\n" + inner_lor.substring(1) + ":");
 
-            String andExpVal = visit(ctx.lAndExp());
+            visit(ctx.lAndExp());
 
 //
 //            String res_reg = "%r" + regId++;
@@ -1182,19 +1183,15 @@ public class Visitor extends SysYBaseVisitor<String> {
 //            System.out.println();
 //            System.out.println(next_label_reg.substring(1) + ":");
 
-            return andExpVal;
+            return null;
         }
     }
 
     @Override
     public String visitCond(SysYParser.CondContext ctx) {
         // TODO: 短路求值这里是否需要修改？
-        String src_reg = visit(ctx.lOrExp());
-//        if(!ifCondFlag) {
-//            String reg = "%r" + regId++;
-//            System.out.println("    " + reg + " = icmp ne i32 " + src_reg + ", 0");
-//        }
-        return src_reg;
+        visit(ctx.lOrExp());
+        return null;
     }
 
     public static String hex2dec(String hex) {

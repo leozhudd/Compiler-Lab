@@ -16,28 +16,34 @@ define dso_local i32 @main() {
   store i32 2, i32* %r2, align 4
   %r3 = alloca i32, align 4
   store i32 3, i32* %r3, align 4
-  %r7 = load i32, i32* %r1, align 4
-  %r8 = sub i32 %r7, 1
-  %r9 = icmp ne i32 %r8, 0
-  br i1 %r9, label %r6, label %r5
+  %r8 = load i32, i32* %r1, align 4
+  %r9 = sub i32 %r8, 1
+  %r10 = icmp ne i32 %r9, 0
+  br i1 %r10, label %r7, label %r6
 
-r6:                                               ; preds = %0
-  %r10 = load i32, i32* %r2, align 4
-  %r11 = sub i32 %r10, 2
-  %r13 = icmp ne i32 %r11, 0
-  br i1 %r13, label %r4, label %r5
+r7:                                               ; preds = %0
+  %r11 = load i32, i32* %r2, align 4
+  %r12 = sub i32 %r11, 2
+  %r13 = icmp ne i32 %r12, 0
+  br i1 %r13, label %r4, label %r6
 
-r4:                                               ; preds = %r6
-  %r14 = load i32, i32* %r1, align 4
-  call void @putint(i32 %r14)
-  br label %r12
+r6:                                               ; preds = %r7, %0
+  %r14 = load i32, i32* %r3, align 4
+  %r15 = sub i32 %r14, 3
+  %r16 = icmp ne i32 %r15, 0
+  br i1 %r16, label %r4, label %r5
 
-r5:                                               ; preds = %r6, %0
-  br label %r12
+r4:                                               ; preds = %r6, %r7
+  %r18 = load i32, i32* %r1, align 4
+  call void @putint(i32 %r18)
+  br label %r17
 
-r12:                                              ; preds = %r5, %r4
-  %r15 = load i32, i32* %r2, align 4
-  call void @putint(i32 %r15)
+r5:                                               ; preds = %r6
+  br label %r17
+
+r17:                                              ; preds = %r5, %r4
+  %r19 = load i32, i32* %r2, align 4
+  call void @putint(i32 %r19)
   ret i32 0
 }
 

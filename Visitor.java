@@ -638,20 +638,21 @@ public class Visitor extends SysYBaseVisitor<String> {
             String while_reg = "%r" + regId++;
             String do_reg = "%r" + regId++;
             String out_reg = "%r" + regId++;
+            condTrue.push(do_reg);
+            condFalse.push(out_reg);
             loopLabels.push(new Pair<>(while_reg, out_reg));
             System.out.println("    br label " + while_reg);
 
-            // 条件判断部分
+            // 条件判断部分[while_reg]
             System.out.println(while_reg.substring(1) + ":");
-            String cond_reg = visit(ctx.cond());
-            System.out.println("    br i1 " + cond_reg + ", label " + do_reg + ", label " + out_reg);
+            visit(ctx.cond());
 
-            // 循环体部分
+            // 循环体部分[do_reg]
             System.out.println(do_reg.substring(1) + ":");
             visit(ctx.stmt(0));
             System.out.println("    br label " + while_reg);
 
-            // 结束部分
+            // 结束部分[end_reg]
             System.out.println(out_reg.substring(1) + ":");
             loopLabels.pop();
         }
